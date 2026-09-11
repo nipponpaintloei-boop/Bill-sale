@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nippon Sales Bill</title>
+
+<!-- PWA: manifest + theme color -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B3A5C">
+
+<!-- Favicon -->
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+
+<!-- iOS: เพิ่มลงหน้าจอโฮม -->
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nippon Bill">
 <style>
   :root{
     --paper:#F5F3EE;
@@ -1632,6 +1650,14 @@
 
   loadAll();
 })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function(){/* เงียบไว้ ไม่กระทบการใช้งานหลัก */});
+    });
+  }
 </script>
 
 </body>
