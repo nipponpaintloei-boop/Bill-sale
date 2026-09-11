@@ -913,11 +913,12 @@
     });
     return matches[0].amount;
   }
-  function findStepCashback(purchaseTotal){
-    var applicable = stepCashback.filter(function(s){ return purchaseTotal >= Number(s.threshold); });
-    if(applicable.length===0) return null;
-    applicable.sort(function(a,b){ return Number(b.threshold)-Number(a.threshold); });
-    return applicable[0];
+  function findStepCashbacks(purchaseTotal){
+    // แต่ละ Step เป็นโปรโมชั่นอิสระต่อกัน (เช่นโปรหลักที่มีตลอด + โปรเสริมช่วงสั้นๆ)
+    // ถ้ายอดซื้อถึงเกณฑ์ของหลายขั้นพร้อมกัน ลูกค้าได้รับ Cash Back ของทุกขั้นที่ถึงเกณฑ์ รวมกัน
+    return stepCashback
+      .filter(function(s){ return purchaseTotal >= Number(s.threshold); })
+      .sort(function(a,b){ return Number(a.threshold)-Number(b.threshold); });
   }
   function allBasesFor(name){
     var seen={}, out=[];
@@ -1401,8 +1402,9 @@
       sumTint += it.tint*it.qty;
       totalCashback += findCashback(it.name, it.base, it.size, it.qty)*it.qty;
     });
-    var stepHit = findStepCashback(sumProduct+sumTint);
-    if(stepHit) totalCashback += Number(stepHit.amount);
+    var stepHits = findStepCashbacks(sumProduct+sumTint);
+    var stepTotal = stepHits.reduce(function(s,h){ return s+Number(h.amount); }, 0);
+    totalCashback += stepTotal;
     var discount = Number(billDiscount)||0;
     var grand = Math.max(0, sumProduct+sumTint-discount);
     document.getElementById('sumProduct').textContent = fmt(sumProduct);
@@ -1418,7 +1420,8 @@
     var cbRow = document.getElementById('sumCashbackRow');
     if(totalCashback>0){
       cbRow.style.display='';
-      document.getElementById('sumCashbackLabel').textContent = 'Cash Back รวม (รับหลังชำระ)'+(stepHit?(' [รวม Step ครบ '+fmt(stepHit.threshold)+']'):'');
+      var stepLabel = stepHits.length ? (' [รวม Step ครบ '+stepHits.map(function(h){return fmt(h.threshold);}).join(' + ')+']') : '';
+      document.getElementById('sumCashbackLabel').textContent = 'Cash Back รวม (รับหลังชำระ)'+stepLabel;
       document.getElementById('sumCashback').textContent = fmt(totalCashback);
     } else {
       cbRow.style.display='none';
@@ -1513,8 +1516,8 @@
         '<td class="amt">'+fmt(total)+'</td>'+
         '</tr>';
     });
-    var stepHit = findStepCashback(sumProduct+sumTint);
-    if(stepHit) totalCashback += Number(stepHit.amount);
+    var stepHits = findStepCashbacks(sumProduct+sumTint);
+    stepHits.forEach(function(h){ totalCashback += Number(h.amount); });
     var discount = Number(billDiscount)||0;
     var grand = Math.max(0, sumProduct+sumTint-discount);
 
@@ -1686,14 +1689,14 @@
       items.forEach(function(it, idx){ cvItems.appendChild(buildCustomerCard(it, idx)); });
     }
 
-    var stepHit = findStepCashback(sumProduct+sumTint);
-    if(stepHit){
-      totalCashback += Number(stepHit.amount);
+    var stepHits = findStepCashbacks(sumProduct+sumTint);
+    stepHits.forEach(function(h){
+      totalCashback += Number(h.amount);
       cbDetails.push({
-        label: 'โปรโมชั่นซื้อครบ '+fmt(stepHit.threshold),
-        amount: Number(stepHit.amount)
+        label: 'โปรโมชั่นซื้อครบ '+fmt(h.threshold),
+        amount: Number(h.amount)
       });
-    }
+    });
     var discount = Number(billDiscount)||0;
     var grand = Math.max(0, sumProduct+sumTint-discount);
 
