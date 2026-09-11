@@ -46,6 +46,9 @@
     -webkit-font-smoothing:antialiased;
     padding-bottom:96px;
   }
+  @media (max-width:859px){
+    body{padding-bottom:150px;}
+  }
   .topbar{
     background:var(--blue);
     color:#fff;
@@ -249,16 +252,20 @@
     font-variant-numeric:tabular-nums;
     margin-top:4px;
   }
-  .footerbar{
+  .bottomdock{
     position:fixed;
     left:0;right:0;bottom:0;
+    z-index:20;
+    display:flex;
+    flex-direction:column;
+  }
+  .footerbar{
     background:var(--surface);
     border-top:1px solid var(--line);
     padding:10px 16px;
     display:flex;
     gap:8px;
     justify-content:center;
-    z-index:20;
   }
   .footerbar .wrapinner{
     max-width:980px;width:100%;
@@ -277,6 +284,56 @@
   }
   .footerbar button.show{background:var(--blue);color:#fff;border-color:var(--blue);}
   .footerbar button.newbill{color:var(--danger);}
+
+  /* Floating cart summary bar (mobile) */
+  .floatcart{
+    background:var(--surface);
+    border-top:1px solid var(--line);
+    box-shadow:0 -4px 14px rgba(31,36,33,0.08);
+  }
+  .floatcart-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    max-width:980px;width:100%;margin:0 auto;
+    padding:10px 16px;
+    cursor:pointer;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .floatcart-bar:active{background:var(--paper);}
+  .floatcart-left{display:flex;align-items:baseline;gap:8px;min-width:0;}
+  .floatcart-count{
+    font-size:12.5px;color:var(--ink-soft);font-weight:600;
+    white-space:nowrap;
+  }
+  .floatcart-total{
+    font-size:17px;font-weight:800;color:var(--blue);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .floatcart-cb{
+    font-size:11.5px;color:#B5721C;font-weight:700;white-space:nowrap;
+  }
+  .floatcart-arrow{
+    font-size:11px;color:var(--ink-soft);
+    transition:transform .2s ease;
+    flex-shrink:0;margin-left:8px;
+  }
+  .floatcart-bar.open .floatcart-arrow{transform:rotate(180deg);}
+  .floatcart-drawer{
+    max-height:0;overflow-y:auto;
+    transition:max-height .25s ease;
+    border-top:1px solid transparent;
+  }
+  .floatcart-drawer.open{
+    max-height:50vh;
+    border-top-color:var(--line);
+  }
+  .floatcart-drawer-inner{
+    max-width:980px;margin:0 auto;
+    padding:10px 16px 4px;
+  }
+  @media (min-width:860px){
+    .floatcart{display:none;}
+  }
   .prodmini{
     border:1px solid var(--line);
     border-radius:8px;
@@ -443,7 +500,7 @@
     body *{visibility:hidden;}
     #printarea, #printarea *{visibility:visible;}
     #printarea{position:absolute;left:0;top:0;width:100%;padding:20px;}
-    .footerbar,.topbar,.overlay .closebar{display:none !important;}
+    .footerbar,.topbar,.overlay .closebar,.bottomdock{display:none !important;}
   }
 </style>
 </head>
@@ -550,11 +607,27 @@
   </div>
 </div>
 
-<div class="footerbar">
-  <div class="wrapinner">
-    <button class="newbill" id="btnNew" type="button">เริ่มใหม่</button>
-    <button class="show" id="btnShow" type="button">แสดงให้ลูกค้าดู</button>
-    <button id="btnPrint" type="button">พิมพ์บิล</button>
+<div class="bottomdock">
+  <div class="floatcart" id="floatCart">
+    <div class="floatcart-drawer" id="floatCartDrawer">
+      <div class="floatcart-drawer-inner itemslist" id="floatCartItems"></div>
+    </div>
+    <div class="floatcart-bar" id="floatCartBar">
+      <div class="floatcart-left">
+        <span class="floatcart-count" id="fcCount">0 รายการ</span>
+        <span class="floatcart-total" id="fcTotal">฿0</span>
+        <span class="floatcart-cb hidden" id="fcCashback"></span>
+      </div>
+      <span class="floatcart-arrow" id="fcArrow">▲</span>
+    </div>
+  </div>
+
+  <div class="footerbar">
+    <div class="wrapinner">
+      <button class="newbill" id="btnNew" type="button">เริ่มใหม่</button>
+      <button class="show" id="btnShow" type="button">แสดงให้ลูกค้าดู</button>
+      <button id="btnPrint" type="button">พิมพ์บิล</button>
+    </div>
   </div>
 </div>
 
@@ -1155,7 +1228,41 @@
     itemsList.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){ deleteItem(b.getAttribute('data-del')); });
     });
+    renderFloatCartItems();
     renderSummary();
+  }
+
+  // ---------- floating cart bar (mobile) ----------
+  var floatCartBar = document.getElementById('floatCartBar');
+  var floatCartDrawer = document.getElementById('floatCartDrawer');
+  var floatCartItemsEl = document.getElementById('floatCartItems');
+  var floatCartOpen = false;
+
+  function renderFloatCartItems(){
+    if(!floatCartItemsEl) return;
+    // เนื้อหาเหมือน itemsList ทุกประการ เพื่อให้แก้ไข/ลบได้ทันทีโดยไม่ต้องเลื่อนจอ
+    floatCartItemsEl.innerHTML = itemsList.innerHTML;
+    floatCartItemsEl.querySelectorAll('[data-edit]').forEach(function(b){
+      b.addEventListener('click', function(){
+        editItem(b.getAttribute('data-edit'));
+        setFloatCartOpen(false);
+      });
+    });
+    floatCartItemsEl.querySelectorAll('[data-del]').forEach(function(b){
+      b.addEventListener('click', function(){ deleteItem(b.getAttribute('data-del')); });
+    });
+  }
+
+  function setFloatCartOpen(open){
+    floatCartOpen = open;
+    floatCartBar.classList.toggle('open', open);
+    floatCartDrawer.classList.toggle('open', open);
+  }
+
+  if(floatCartBar){
+    floatCartBar.addEventListener('click', function(){
+      setFloatCartOpen(!floatCartOpen);
+    });
   }
 
   function editItem(id){
@@ -1228,6 +1335,21 @@
     } else {
       cbRow.style.display='none';
     }
+
+    // sync floating cart bar
+    var fcCount = document.getElementById('fcCount');
+    var fcTotal = document.getElementById('fcTotal');
+    var fcCashback = document.getElementById('fcCashback');
+    if(fcCount){
+      fcCount.textContent = items.length+' รายการ';
+      fcTotal.textContent = fmt(grand);
+      if(totalCashback>0){
+        fcCashback.textContent = '+Cash Back '+fmt(totalCashback);
+        fcCashback.classList.remove('hidden');
+      } else {
+        fcCashback.classList.add('hidden');
+      }
+    }
   }
 
   function esc(s){
@@ -1248,6 +1370,7 @@
     saveDiscount();
     resetForm();
     renderItems();
+    setFloatCartOpen(false);
   });
 
   // ---------- customer view / print ----------
