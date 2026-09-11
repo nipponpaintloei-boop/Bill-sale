@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nippon Sales Bill</title>
+<style>
+  :root{
+    --paper:#F5F3EE;
+    --surface:#FFFFFF;
+    --ink:#1F2421;
+    --ink-soft:#5B6259;
+    --line:#DEDACF;
+    --blue:#1B3A5C;
+    --blue-dark:#142B44;
+    --amber:#D98A2B;
+    --amber-soft:#F4E3C6;
+    --danger:#B3432B;
+    --danger-soft:#F5E0D8;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:96px;
+  }
+  .topbar{
+    background:var(--blue);
+    color:#fff;
+    padding:16px 20px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .topbar h1{
+    font-size:19px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  .topbar span{
+    font-size:13px;
+    color:#C9D5DF;
+  }
+  .wrap{
+    max-width:980px;
+    margin:0 auto;
+    padding:18px 16px 0;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+  @media (min-width:860px){
+    .grid{grid-template-columns:380px 1fr;align-items:start;}
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+  }
+  .card + .card{margin-top:16px;}
+  .card h2{
+    font-size:15px;
+    margin:0 0 12px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  select,input[type=text],input[type=number]{
+    width:100%;
+    padding:10px 11px;
+    font-size:15px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  select:focus,input:focus{
+    outline:none;
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(27,58,92,0.12);
+  }
+  .search-wrap input:disabled{
+    background:var(--paper);
+    color:var(--ink-soft);
+    cursor:not-allowed;
+  }
+  #selSize:not(:disabled),#selBase:not(:disabled){
+    cursor:pointer;
+    caret-color:transparent;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row2.single{grid-template-columns:1fr;}
+  .search-wrap{position:relative;}
+  .suggest{
+    position:absolute;z-index:30;top:calc(100% + 4px);left:0;right:0;
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    max-height:240px;overflow-y:auto;
+    box-shadow:0 10px 24px rgba(31,36,33,0.14);
+    animation:suggestdrop .14s ease;
+  }
+  @keyframes suggestdrop{
+    from{opacity:0;transform:translateY(-4px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .suggest-item{padding:10px 12px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--line);}
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:active,.suggest-item:hover{background:var(--paper);}
+  .suggest-item .meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .autoprice{
+    background:var(--amber-soft);
+    border:1px solid #E8C989;
+    border-radius:8px;
+    padding:10px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .autoprice .label{font-size:12.5px;color:#7A5A1E;}
+  .autoprice .val{font-size:18px;font-weight:700;color:#7A5A1E;}
+  .pricewarn{
+    margin-top:6px;font-size:12.5px;color:var(--danger);font-weight:600;
+    background:var(--danger-soft);border:1px solid #E7C4B7;border-radius:8px;
+    padding:8px 10px;
+  }
+  .prodmini.zero{border-color:var(--danger);background:var(--danger-soft);}
+  .prodmini .zerotag{color:var(--danger);font-size:11px;font-weight:700;margin-top:2px;}
+  .zerobanner{
+    background:var(--danger-soft);border:1px solid #E7C4B7;color:var(--danger);
+    border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;margin-bottom:10px;
+  }
+  .qtyrow{display:flex;align-items:center;gap:8px;}
+  .qtybtn{
+    width:38px;height:38px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:8px;
+    font-size:18px;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .qtybtn:active{background:var(--paper);}
+  .qtyrow input{text-align:center;}
+  button.primary{
+    width:100%;
+    padding:12px;
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.primary:disabled{background:#A9B4BE;cursor:not-allowed;}
+  button.primary:not(:disabled):active{background:var(--blue-dark);}
+  .itemslist{display:flex;flex-direction:column;gap:8px;}
+  .item{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .item .meta{font-size:13.5px;line-height:1.5;}
+  .item .meta .p{font-weight:600;}
+  .item .meta .s{color:var(--ink-soft);}
+  .itemnum{
+    min-width:24px;height:24px;
+    border-radius:50%;
+    background:var(--blue);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .item .amount{
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .item .actions{display:flex;gap:6px;}
+  .iconbtn{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:7px;
+    width:32px;height:32px;
+    font-size:14px;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .iconbtn.del{color:var(--danger);border-color:#E7C4B7;}
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:28px 10px;
+  }
+  .summary{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:14px;
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+  }
+  .summary .line{display:flex;justify-content:space-between;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+  .summary .total{
+    display:flex;justify-content:space-between;
+    font-size:19px;font-weight:700;color:var(--blue);
+    font-variant-numeric:tabular-nums;
+    margin-top:4px;
+  }
+  .footerbar{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    background:var(--surface);
+    border-top:1px solid var(--line);
+    padding:10px 16px;
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    z-index:20;
+  }
+  .footerbar .wrapinner{
+    max-width:980px;width:100%;
+    display:flex;gap:8px;
+  }
+  .footerbar button{
+    flex:1;
+    padding:12px 8px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  .footerbar button.show{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .footerbar button.newbill{color:var(--danger);}
+  .prodmini{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .prodmini .d{color:var(--ink-soft);}
+  .prodmini .p{font-weight:600;font-variant-numeric:tabular-nums;}
+  .toggle{
+    background:none;border:none;color:var(--blue);
+    font-size:13px;font-weight:600;cursor:pointer;padding:0;
+  }
+  .hidden{display:none !important;}
+  .addprodgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .smallbtn{
+    padding:9px;
+    border-radius:8px;
+    border:1px solid var(--blue);
+    background:#fff;
+    color:var(--blue);
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    width:100%;
+  }
+
+  .usage-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .chip.active{
+    background:var(--blue);
+    border-color:var(--blue);
+    color:#fff;
+  }
+  #inUsageOther{margin-top:8px;}
+  .basetag{
+    display:inline-block;
+    background:var(--blue);
+    color:#fff;
+    border-radius:6px;
+    padding:2px 8px;
+    font-size:12px;
+    font-weight:700;
+    margin-left:4px;
+    vertical-align:middle;
+    white-space:nowrap;
+  }
+
+  /* Customer view overlay */
+  .overlay{
+    position:fixed;inset:0;
+    background:var(--paper);
+    z-index:50;
+    overflow-y:auto;
+    padding:26px 20px 40px;
+  }
+  .overlay .closebar{
+    display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;
+  }
+  .overlay .closebar button{
+    background:var(--blue);color:#fff;border:none;border-radius:8px;
+    padding:10px 16px;font-size:14px;cursor:pointer;
+  }
+  .overlay .closebar button.modebtn{
+    background:#fff;color:var(--blue);border:1px solid var(--blue);
+  }
+  .overlay .closebar button.modebtn.active{
+    background:var(--amber);color:#fff;border-color:var(--amber);
+  }
+  .cv-title{
+    text-align:center;font-size:18px;font-weight:700;margin:4px 0 16px;color:var(--blue);
+  }
+  .cv-item{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:9px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+  }
+  .cv-item .name{font-size:14.5px;font-weight:700;}
+  .cv-item .sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
+  .cv-item .amt{font-size:16px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .cv-item.mix{align-items:flex-start;}
+  .cv-item.tagged{align-items:flex-start;}
+  .name.colorchip{
+    display:inline-block;
+    font-size:21px;font-weight:800;letter-spacing:0.4px;
+    background:var(--amber-soft);color:#7A5A1E;
+    border:1px solid #E8C989;border-radius:8px;
+    padding:4px 10px;margin-bottom:5px;
+  }
+  .cv-item.mix .sub{font-size:12.5px;margin-top:2px;}
+  .cv-item.mix .amt{font-size:13px;font-weight:600;color:var(--ink-soft);margin-top:3px;}
+  .cv-summary{
+    background:var(--blue);color:#fff;border-radius:10px;
+    padding:14px 16px;margin-top:14px;
+  }
+  .cv-summary .l{display:flex;justify-content:space-between;font-size:13px;opacity:0.85;margin-bottom:4px;font-variant-numeric:tabular-nums;}
+  .cv-summary .t{display:flex;justify-content:space-between;font-size:21px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printarea, #printarea *{visibility:visible;}
+    #printarea{position:absolute;left:0;top:0;width:100%;padding:20px;}
+    .footerbar,.topbar,.overlay .closebar{display:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Nippon Sales Bill</h1>
+  <span>เครื่องมือทำบิลขายสีหน้าร้าน</span>
+  <button id="btnMenu" type="button" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.45);color:#fff;border-radius:8px;width:38px;height:34px;font-size:17px;cursor:pointer;line-height:1;">☰</button>
+</div>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- LEFT: entry form + product management -->
+    <div>
+      <div class="card">
+        <h2>ทำรายการ</h2>
+
+        <div class="field search-wrap">
+          <label>สินค้า</label>
+          <input type="text" id="selProduct" autocomplete="off" placeholder="พิมพ์ชื่อสินค้า...">
+          <div class="suggest hidden" id="productSuggest"></div>
+        </div>
+        <div class="row2" id="sizeBaseRow">
+          <div class="field search-wrap" id="sizeWrap">
+            <label>ขนาด</label>
+            <input type="text" id="selSize" autocomplete="off" placeholder="เลือกสินค้าก่อน" readonly disabled>
+            <div class="suggest hidden" id="sizeSuggest"></div>
+          </div>
+          <div class="field search-wrap" id="baseField">
+            <label>Base</label>
+            <input type="text" id="selBase" autocomplete="off" placeholder="-" readonly disabled>
+            <div class="suggest hidden" id="baseSuggest"></div>
+          </div>
+        </div>
+
+        <div class="field" id="colorField">
+          <label>รหัสสี (ถ้ามี)</label>
+          <input type="text" id="inColor" placeholder="เช่น A1234 — เว้นว่างได้ถ้าไม่ใช่สี">
+        </div>
+
+        <div class="field" id="usageField">
+          <label>จุดใช้งาน (ติดกับรหัสสีตอนเขียนฝาถัง)</label>
+          <div class="usage-chips" id="usageChips">
+            <button type="button" class="chip" data-usage="ภายนอก">ภายนอก</button>
+            <button type="button" class="chip" data-usage="ภายใน">ภายใน</button>
+            <button type="button" class="chip" data-usage="ฝ้า">ฝ้า</button>
+            <button type="button" class="chip" data-usage="ตัดกันเปื้อน">ตัดกันเปื้อน</button>
+            <button type="button" class="chip" data-usage="__other__">อื่นๆ</button>
+          </div>
+          <input type="text" id="inUsageOther" placeholder="ระบุจุดใช้งาน เช่น รั้ว, ประตู, หลังคา" style="display:none;">
+        </div>
+
+        <div class="field">
+          <div class="autoprice">
+            <span class="label">ราคาสินค้า / ถัง</span>
+            <span class="val" id="autoPrice">฿0</span>
+          </div>
+          <div class="pricewarn hidden" id="priceWarning">⚠ สินค้านี้ยังไม่ได้กำหนดราคา (฿0) — ห้ามขาย กรุณาแก้ไขราคาที่เมนู ☰ &gt; จัดการสินค้า ก่อน</div>
+        </div>
+
+        <div class="row2" id="tintQtyRow">
+          <div class="field" id="tintField">
+            <label>ราคาแม่สี / ถัง</label>
+            <input type="number" id="inTint" min="0" placeholder="0">
+          </div>
+          <div class="field">
+            <label>จำนวน</label>
+            <div class="qtyrow">
+              <button class="qtybtn" id="qtyMinus" type="button">–</button>
+              <input type="number" id="inQty" min="1" value="1">
+              <button class="qtybtn" id="qtyPlus" type="button">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary" id="btnAdd" disabled>+ เพิ่มรายการ</button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: bill items + summary -->
+    <div class="card">
+      <h2>รายการในบิล</h2>
+      <div class="itemslist" id="itemsList">
+        <div class="empty">ยังไม่มีรายการ — เลือกสินค้าทางซ้ายแล้วกด "เพิ่มรายการ"</div>
+      </div>
+
+      <div class="field" style="margin-top:14px;margin-bottom:0;">
+        <label>ส่วนลด (คูปอง) บาท</label>
+        <input type="number" id="inDiscount" min="0" placeholder="0">
+      </div>
+
+      <div class="summary">
+        <div class="line"><span>รวมค่าสินค้า</span><span id="sumProduct">฿0</span></div>
+        <div class="line"><span>รวมค่าแม่สี</span><span id="sumTint">฿0</span></div>
+        <div class="line" id="sumDiscountRow" style="display:none;"><span>ส่วนลด (คูปอง)</span><span id="sumDiscount">-฿0</span></div>
+        <div class="total"><span>ยอดรวม</span><span id="sumGrand">฿0</span></div>
+        <div class="line" id="sumCashbackRow" style="display:none;color:var(--amber);"><span id="sumCashbackLabel">Cash Back รวม (รับหลังชำระ)</span><span id="sumCashback">฿0</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footerbar">
+  <div class="wrapinner">
+    <button class="newbill" id="btnNew" type="button">เริ่มใหม่</button>
+    <button class="show" id="btnShow" type="button">แสดงให้ลูกค้าดู</button>
+    <button id="btnPrint" type="button">พิมพ์บิล</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="closebar">
+    <button id="btnMixMode" type="button" class="modebtn">โหมดผสมสี</button>
+    <button id="btnCloseOverlay" type="button">ปิด</button>
+  </div>
+  <div id="printarea">
+    <div class="cv-title" id="cvTitle">สรุปรายการ</div>
+    <div id="cvItems"></div>
+    <div class="cv-summary">
+      <div class="l"><span>รวมค่าสินค้า</span><span id="cvSumProduct">฿0</span></div>
+      <div class="l"><span>รวมค่าแม่สี</span><span id="cvSumTint">฿0</span></div>
+      <div class="l" id="cvSumDiscountRow" style="display:none;"><span>ส่วนลด (คูปอง)</span><span id="cvSumDiscount">-฿0</span></div>
+      <div class="t"><span>ยอดรวม</span><span id="cvSumGrand">฿0</span></div>
+      <div class="l" id="cvSumCashbackRow" style="display:none;color:#FFDCA0;"><span id="cvSumCashbackLabel">Cash Back รวม (รับหลังชำระ)</span><span id="cvSumCashback">฿0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="menuOverlay">
+  <div class="closebar"><button id="btnCloseMenu" type="button">ปิด</button></div>
+  <div style="max-width:560px;margin:0 auto;">
+    <div class="cv-title" style="margin-bottom:16px;">เมนู</div>
+
+    <div class="card">
+      <h2>จัดการสินค้า <span id="prodZeroBadge" style="color:var(--danger);font-weight:700;"></span> <button class="toggle" id="toggleProdMgmt">แสดง</button></h2>
+      <div id="prodMgmt" class="hidden">
+        <div class="addprodgrid">
+          <input type="text" id="npName" placeholder="ชื่อสินค้า">
+          <input type="text" id="npSize" placeholder="ขนาด เช่น 9L">
+          <input type="text" id="npBase" placeholder="Base (ถ้ามี)">
+          <input type="number" id="npPrice" placeholder="ราคา">
+        </div>
+        <button class="smallbtn" id="btnAddProduct" type="button">+ เพิ่มสินค้าในฐานข้อมูล</button>
+        <button class="smallbtn" id="btnReloadCatalog" type="button" style="margin-top:8px;border-color:var(--danger);color:var(--danger);">โหลดราคาล่าสุด (138 รายการ) — แทนที่ทั้งหมด</button>
+        <div id="prodList" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ตั้งค่า Cash Back <button class="toggle" id="toggleCashback">แสดง</button></h2>
+      <div id="cashbackMgmt" class="hidden">
+        <div class="field search-wrap">
+          <label>สินค้า</label>
+          <input type="text" id="cbProduct" autocomplete="off" placeholder="พิมพ์ชื่อสินค้า...">
+          <div class="suggest hidden" id="cbProductSuggest"></div>
+        </div>
+        <div class="row2" id="cbBaseSizeRow">
+          <div class="field" id="cbBaseField">
+            <label>เบส (เว้นว่าง = ทุกเบส)</label>
+            <select id="cbBase"><option value="">ทุกเบส</option></select>
+          </div>
+          <div class="field">
+            <label>ขนาด (เว้นว่าง = ทุกขนาด)</label>
+            <select id="cbSize"><option value="">ทุกขนาด</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Cash Back ต่อถัง (บาท)</label>
+          <input type="number" id="cbAmount" min="0" placeholder="0">
+        </div>
+        <button class="smallbtn" id="btnSaveCashback" type="button">+ เพิ่มเงื่อนไข Cash Back</button>
+        <div id="cbList" style="margin-top:12px;"></div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);">
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">Cash Back แบบครบยอด (Step)</div>
+          <div class="row2">
+            <input type="number" id="stepThreshold" min="0" placeholder="ยอดซื้อครบ (บาท)">
+            <input type="number" id="stepAmount" min="0" placeholder="รับ Cash Back (บาท)">
+          </div>
+          <button class="smallbtn" id="btnAddStep" type="button" style="margin-top:8px;">+ เพิ่ม Step</button>
+          <div id="stepList" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var products = [];
+  var items = [];
+  var editingId = null;
+  var cashbackConfig = [];
+  var stepCashback = [];
+  var billDiscount = 0;
+  var FULL_CATALOG = [{"name":"กันซึม A100","size":"1 GL","base":"","price":640},{"name":"กันซึม A200","size":"1 GL","base":"","price":760},{"name":"รองพื้นกันสนิม JUNIOR99 (แดง)","size":"1 GL","base":"","price":400},{"name":"รองพื้นกันสนิม JUNIOR99 (แดง)","size":"5 GL","base":"","price":1980},{"name":"รองพื้นกันสนิม JUNIOR99 (เทา)","size":"1 GL","base":"","price":400},{"name":"รองพื้นกันสนิม JUNIOR99 (เทา)","size":"5 GL","base":"","price":1980},{"name":"รองพื้นปูนเก่า JUNIOR99","size":"1 GL","base":"","price":425},{"name":"รองพื้นปูนเก่า JUNIOR99","size":"5 GL","base":"","price":1980},{"name":"รองพื้นอเนกประสงค์ FLEXISEAL","size":"1 GL","base":"","price":650},{"name":"รองพื้นอเนกประสงค์ FLEXISEAL","size":"2.5 GL","base":"","price":1350},{"name":"รองพื้นอเนกประสงค์ FLEXISEAL","size":"5 GL","base":"","price":2190},{"name":"รองพื้น AQUA Epoxy","size":"1 Set","base":"","price":1950},{"name":"ร้องพื้น Excel","size":"1 GL","base":"","price":800},{"name":"ร้องพื้น Excel","size":"5 GL","base":"","price":3150},{"name":"รองพื้น JUNIOR99 (น้ำ)","size":"1 GL","base":"","price":325},{"name":"รองพื้น JUNIOR99 (น้ำ)","size":"5 GL","base":"","price":1130},{"name":"รองพื้น Quick Coat","size":"1 GL","base":"","price":740},{"name":"รองพื้น Quick Coat","size":"2.5 GL","base":"","price":1690},{"name":"รองพื้น Quick Coat","size":"5 GL","base":"","price":2690},{"name":"รองพื้น Quick Sealer","size":"1 GL","base":"","price":740},{"name":"รองพื้น Quick Sealer","size":"2.5 GL","base":"","price":1800},{"name":"รองพื้น Quick Sealer","size":"5 GL","base":"","price":3190},{"name":"รองพื้น SUPER SERVE","size":"5 GL","base":"","price":1790},{"name":"รองพื้น VINILEX","size":"1 GL","base":"","price":635},{"name":"รองพื้น VINILEX","size":"5 GL","base":"","price":2550},{"name":"รองพื้น WEATHERBOND 5100","size":"5 GL","base":"","price":3190},{"name":"สีท้าฝ้า HYBRIDESHIELD (777C)","size":"1 GL","base":"","price":540},{"name":"สีท้าฝ้า HYBRIDESHIELD (777C)","size":"5 GL","base":"","price":2200},{"name":"สีท้าฝ้า HYBRIDESHIELD (999C)","size":"1 GL","base":"","price":540},{"name":"สีท้าฝ้า HYBRIDESHIELD (999C)","size":"5 GL","base":"","price":2200},{"name":"สีทาฝ้า JUNIOR99 (S700)","size":"1 GL","base":"","price":225},{"name":"สีทาฝ้า JUNIOR99 (S700)","size":"5 GL","base":"","price":900},{"name":"สีทาฝ้า JUNIOR99 (S800)","size":"1 GL","base":"","price":225},{"name":"สีทาฝ้า JUNIOR99 (S800)","size":"5 GL","base":"","price":900},{"name":"สีทาฝ้า SUPER SERVE (S700)","size":"1 GL","base":"","price":350},{"name":"สีทาฝ้า SUPER SERVE (S700)","size":"5 GL","base":"","price":1440},{"name":"สีทาฝ้า SUPER SERVE  (S800)","size":"1 GL","base":"","price":350},{"name":"สีทาฝ้า SUPER SERVE  (S800)","size":"5 GL","base":"","price":1440},{"name":"สีทาหลังคา ROOF PAINT","size":"1 GL","base":"","price":490},{"name":"สีน้ำมัน All in 1 F914","size":"1/4 GL","base":"","price":225},{"name":"สีน้ำมัน All in 1 F914","size":"1 GL","base":"","price":690},{"name":"สีน้ำมัน All in 1 S138","size":"1/4 GL","base":"","price":225},{"name":"สีน้ำมัน All in 1 S138","size":"1 GL","base":"","price":720},{"name":"สีน้ำมัน All in 1 S900","size":"1/4 GL","base":"","price":225},{"name":"สีน้ำมัน All in 1 S900","size":"1 GL","base":"","price":720},{"name":"สีน้ำมัน All in 1 S910","size":"1 GL","base":"","price":720},{"name":"สีน้ำมัน All in 1 S912","size":"1/4 GL","base":"","price":225},{"name":"สีน้ำมัน All in 1 S912","size":"1 GL","base":"","price":720},{"name":"สีน้ำมัน All in 1 S914","size":"1/4 GL","base":"","price":225},{"name":"สีน้ำมัน All in 1 S914","size":"1 GL","base":"","price":720},{"name":"สีน้ำมัน BODELAG","size":"1 GL","base":"A","price":880},{"name":"สีน้ำมัน BODELAG","size":"1 GL","base":"B","price":0},{"name":"สีน้ำมัน BODELAG","size":"1 GL","base":"C","price":0},{"name":"สีน้ำมัน BODELAG","size":"1 GL","base":"D","price":760},{"name":"สีน้ำมัน BODELAG","size":"2.5 GL","base":"A","price":2070},{"name":"สีน้ำมัน BODELAG","size":"2.5 GL","base":"B","price":0},{"name":"สีน้ำมัน BODELAG","size":"2.5 GL","base":"C","price":0},{"name":"สีน้ำมัน BODELAG","size":"2.5 GL","base":"D","price":1830},{"name":"สีน้ำมัน JUNIOR99 [9700]","size":"1 GL","base":"","price":520},{"name":"สีน้ำมัน JUNIOR99 [9711]","size":"1 GL","base":"","price":0},{"name":"สีน้ำมัน JUNIOR99 [9727]","size":"1 GL","base":"","price":0},{"name":"สีน้ำมัน JUNIOR99 [9736]","size":"1 GL","base":"","price":0},{"name":"สีน้ำมัน JUNIOR99 [9741]","size":"1 GL","base":"","price":0},{"name":"สีสเปรย์กระป๋อง LAZER","size":"1 กป","base":"","price":58},{"name":"สีสเปรย์กระป๋อง PYLAC","size":"1 กป","base":"","price":98},{"name":"สีสร้างลาย Momento Loft","size":"1 Set","base":"","price":2450},{"name":"อะคริลิค Wall Filler","size":"5 KG","base":"","price":260},{"name":"AirCare (กึ่งเงา) ภายใน","size":"1 GL","base":"A","price":980},{"name":"AirCare (กึ่งเงา) ภายใน","size":"2.5 GL","base":"A","price":2070},{"name":"AirCare (เนียน) ภายใน","size":"1 GL","base":"A","price":900},{"name":"AirCare (เนียน) ภายใน","size":"2.5 GL","base":"A","price":2020},{"name":"AQUA Epoxy","size":"1 Set","base":"A","price":2310},{"name":"AQUA Epoxy","size":"1 Set","base":"B","price":2310},{"name":"AQUA Epoxy","size":"1 Set","base":"C","price":1800},{"name":"AQUA Epoxy","size":"1 Set","base":"D","price":1800},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"1 GL","base":"A","price":790},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"1 GL","base":"B","price":770},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"1 GL","base":"C","price":730},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"1 GL","base":"D","price":640},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"A","price":1740},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"B","price":1710},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"C","price":1690},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"D","price":1630},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายใน","size":"1 GL","base":"A","price":710},{"name":"HYBRIDESHIELD (กึ่งเงา) ภายใน","size":"2.5 GL","base":"A","price":1580},{"name":"HYBRIDESHIELD (ด้าน)","size":"1 GL","base":"A","price":730},{"name":"HYBRIDESHIELD (ด้าน)","size":"2.5 GL","base":"A","price":1620},{"name":"JUNIOR99 ภายนอก (900)","size":"1 GL","base":"","price":300},{"name":"JUNIOR99 ภายนอก (900)","size":"5 GL","base":"","price":1050},{"name":"JUNIOR99 ภายนอก (9506)","size":"1 GL","base":"","price":300},{"name":"JUNIOR99 ภายนอก (9506)","size":"5 GL","base":"","price":1050},{"name":"JUNIOR99 ภายใน (300)","size":"1 GL","base":"","price":300},{"name":"JUNIOR99 ภายใน (300)","size":"5 GL","base":"","price":860},{"name":"JUNIOR99 ภายใน (9106)","size":"1 GL","base":"","price":300},{"name":"JUNIOR99 ภายใน (9106)","size":"5 GL","base":"","price":860},{"name":"Junior ภายนอก 900","size":"5","base":"","price":900},{"name":"Roof Seal กันซึมดาดฟ้า (ขาว)","size":"20 KG","base":"","price":2890},{"name":"Roof Seal กันซึมดาดฟ้า (ขาว)","size":"4 KG","base":"","price":690},{"name":"Roof Seal กันซึมดาดฟ้า (เทาเข้ม)","size":"20 KG","base":"","price":2890},{"name":"Roof Seal กันซึมดาดฟ้า (เทาเข้ม)","size":"4 KG","base":"","price":690},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"1 GL","base":"A","price":500},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"1 GL","base":"B","price":480},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"1 GL","base":"C","price":450},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"1 GL","base":"D","price":400},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"A","price":1190},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"B","price":1110},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"C","price":1050},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"D","price":900},{"name":"SUPER SERVE (กึ่งเงา) ภายนอก","size":"5 GL","base":"A","price":2300},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"1 GL","base":"A","price":400},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"1 GL","base":"B","price":370},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"1 GL","base":"C","price":360},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"1 GL","base":"D","price":300},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"2.5 GL","base":"A","price":910},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"2.5 GL","base":"B","price":865},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"2.5 GL","base":"C","price":830},{"name":"SUPER SERVE (ด้าน) ภายนอก","size":"2.5 GL","base":"D","price":680},{"name":"SUPER SERVE (ด้าน) ภายใน","size":"1 GL","base":"A","price":330},{"name":"SUPER SERVE (ด้าน) ภายใน","size":"2.5 GL","base":"A","price":460},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"1 GL","base":"A","price":740},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"1 GL","base":"B","price":700},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"1 GL","base":"C","price":680},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"1 GL","base":"D","price":550},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"A","price":1490},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"B","price":1460},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"C","price":1380},{"name":"VINILEX (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"D","price":1180},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"1 GL","base":"A","price":1130},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"1 GL","base":"B","price":1090},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"1 GL","base":"C","price":1040},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"1 GL","base":"D","price":900},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"A","price":2490},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"B","price":2390},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"C","price":2290},{"name":"WEATHERBOND (กึ่งเงา) ภายนอก","size":"2.5 GL","base":"D","price":2060},{"name":"WEATHERBOND (เนียน) ภายนอก","size":"2.5 GL","base":"A","price":2250}];
+
+  function fmt(n){
+    return '฿' + Math.round(n).toLocaleString('th-TH');
+  }
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+
+  // ---------- storage ----------
+  async function loadAll(){
+    try{
+      var p = await window.storage.get('products');
+      products = p ? JSON.parse(p.value) : seedProducts();
+    }catch(e){
+      products = seedProducts();
+    }
+    if(!products || products.length===0) products = seedProducts();
+    try{
+      var b = await window.storage.get('current-bill');
+      items = b ? JSON.parse(b.value) : [];
+    }catch(e){
+      items = [];
+    }
+    try{
+      var cb = await window.storage.get('cashback-config');
+      cashbackConfig = cb ? JSON.parse(cb.value) : [];
+    }catch(e){
+      cashbackConfig = [];
+    }
+    try{
+      var d = await window.storage.get('current-discount');
+      billDiscount = d ? (Number(JSON.parse(d.value))||0) : 0;
+    }catch(e){
+      billDiscount = 0;
+    }
+    try{
+      var sc = await window.storage.get('step-cashback');
+      stepCashback = sc ? JSON.parse(sc.value) : [];
+    }catch(e){
+      stepCashback = [];
+    }
+    renderAll();
+  }
+  async function saveProducts(){
+    try{ await window.storage.set('products', JSON.stringify(products)); }catch(e){}
+  }
+  async function saveBill(){
+    try{ await window.storage.set('current-bill', JSON.stringify(items)); }catch(e){}
+  }
+  async function saveCashback(){
+    try{ await window.storage.set('cashback-config', JSON.stringify(cashbackConfig)); }catch(e){}
+  }
+  async function saveDiscount(){
+    try{ await window.storage.set('current-discount', JSON.stringify(billDiscount)); }catch(e){}
+  }
+  async function saveStepCashback(){
+    try{ await window.storage.set('step-cashback', JSON.stringify(stepCashback)); }catch(e){}
+  }
+  function findCashback(name, base, size){
+    var matches = cashbackConfig.filter(function(c){
+      return c.name===name &&
+        (!c.base || c.base===(base||'')) &&
+        (!c.size || c.size===(size||''));
+    });
+    if(matches.length===0) return 0;
+    matches.sort(function(a,b){
+      var sa=(a.base?1:0)+(a.size?1:0), sb=(b.base?1:0)+(b.size?1:0);
+      return sb-sa;
+    });
+    return matches[0].amount;
+  }
+  function findStepCashback(purchaseTotal){
+    var applicable = stepCashback.filter(function(s){ return purchaseTotal >= Number(s.threshold); });
+    if(applicable.length===0) return null;
+    applicable.sort(function(a,b){ return Number(b.threshold)-Number(a.threshold); });
+    return applicable[0];
+  }
+  function allBasesFor(name){
+    var seen={}, out=[];
+    products.filter(function(p){return p.name===name;}).forEach(function(p){
+      if(p.base && !seen[p.base]){ seen[p.base]=true; out.push(p.base); }
+    });
+    return out;
+  }
+
+  function seedProducts(){
+    return FULL_CATALOG.map(function(p){
+      return {id:uid(), name:p.name, size:p.size, base:p.base, price:p.price};
+    });
+  }
+
+  // ---------- form elements ----------
+  var selProduct = document.getElementById('selProduct');
+  var selSize = document.getElementById('selSize');
+  var selBase = document.getElementById('selBase');
+  var inColor = document.getElementById('inColor');
+  var inTint = document.getElementById('inTint');
+  var inQty = document.getElementById('inQty');
+  var autoPrice = document.getElementById('autoPrice');
+  var btnAdd = document.getElementById('btnAdd');
+  var inDiscount = document.getElementById('inDiscount');
+  var productSuggest = document.getElementById('productSuggest');
+  var sizeSuggest = document.getElementById('sizeSuggest');
+  var baseSuggest = document.getElementById('baseSuggest');
+  var sizeBaseRow = document.getElementById('sizeBaseRow');
+  var baseField = document.getElementById('baseField');
+  var colorField = document.getElementById('colorField');
+  var tintField = document.getElementById('tintField');
+  var tintQtyRow = document.getElementById('tintQtyRow');
+  var usageField = document.getElementById('usageField');
+  var usageChips = document.getElementById('usageChips');
+  var inUsageOther = document.getElementById('inUsageOther');
+  var USAGE_PRESETS = ['ภายนอก','ภายใน','ฝ้า','ตัดกันเปื้อน'];
+  var usageMode = '';
+
+  function renderUsageChips(){
+    usageChips.querySelectorAll('.chip').forEach(function(c){
+      c.classList.toggle('active', c.getAttribute('data-usage')===usageMode);
+    });
+    if(usageMode==='__other__'){
+      inUsageOther.style.display='';
+    } else {
+      inUsageOther.style.display='none';
+    }
+  }
+  function currentUsageValue(){
+    if(usageMode==='__other__') return inUsageOther.value.trim();
+    return usageMode;
+  }
+  usageChips.addEventListener('click', function(e){
+    var btn = e.target.closest('.chip');
+    if(!btn) return;
+    var v = btn.getAttribute('data-usage');
+    if(usageMode===v){
+      usageMode = '';
+      inUsageOther.value='';
+    } else {
+      usageMode = v;
+    }
+    renderUsageChips();
+    if(usageMode==='__other__') inUsageOther.focus();
+  });
+  inUsageOther.addEventListener('input', function(){
+    usageMode = '__other__';
+  });
+
+  function uniqueNames(){
+    var seen = {}, out = [];
+    products.forEach(function(p){ if(!seen[p.name]){ seen[p.name]=true; out.push(p.name); } });
+    return out;
+  }
+  function sizesFor(name){
+    var seen = {}, out = [];
+    products.filter(function(p){return p.name===name;}).forEach(function(p){
+      if(!seen[p.size]){ seen[p.size]=true; out.push(p.size); }
+    });
+    return out;
+  }
+  function basesFor(name,size){
+    return products.filter(function(p){return p.name===name && p.size===size;})
+      .map(function(p){return p.base;});
+  }
+  function findPrice(name,size,base){
+    var m = products.find(function(p){return p.name===name && p.size===size && (p.base||'')===(base||'');});
+    return m ? m.price : null;
+  }
+
+  function refreshProductSelect(){
+    refreshSizeSelect();
+  }
+  function refreshSizeSelect(){
+    var name = selProduct.value;
+    var opts = sizesFor(name);
+    if(opts.length===0){
+      selSize.value='';
+      selSize.disabled = true;
+      selSize.placeholder = 'เลือกสินค้าก่อน';
+    } else {
+      selSize.disabled = false;
+      selSize.placeholder = 'แตะเพื่อเลือกขนาด';
+      if(opts.indexOf(selSize.value)===-1) selSize.value = opts[0];
+    }
+    renderSizeSuggest([]);
+    refreshBaseSelect();
+  }
+  function refreshBaseSelect(){
+    var name = selProduct.value, size = selSize.value;
+    var opts = basesFor(name,size);
+    if(opts.length===0){
+      selBase.value='';
+      selBase.disabled = true;
+      selBase.placeholder = '-';
+    } else {
+      selBase.disabled = false;
+      selBase.placeholder = 'แตะเพื่อเลือก Base';
+      if(opts.indexOf(selBase.value)===-1) selBase.value = opts[0];
+    }
+    renderBaseSuggest([]);
+    updateFieldVisibility();
+    updateAutoPrice();
+  }
+  function updateFieldVisibility(){
+    var bases = basesFor(selProduct.value, selSize.value);
+    var hasRealBase = bases.some(function(b){ return b !== ''; });
+    if(hasRealBase){
+      sizeBaseRow.classList.remove('single');
+      baseField.style.display='';
+      colorField.style.display='';
+      usageField.style.display='';
+      tintField.style.display='';
+      tintQtyRow.classList.remove('single');
+    } else {
+      sizeBaseRow.classList.add('single');
+      baseField.style.display='none';
+      colorField.style.display='none';
+      usageField.style.display='none';
+      tintField.style.display='none';
+      tintQtyRow.classList.add('single');
+      inColor.value='';
+      inTint.value='';
+      usageMode='';
+      inUsageOther.value='';
+      renderUsageChips();
+    }
+  }
+  function updateAutoPrice(){
+    var price = findPrice(selProduct.value, selSize.value, selBase.value);
+    autoPrice.textContent = price!=null ? fmt(price) : '฿0';
+    var warn = document.getElementById('priceWarning');
+    if(price===0){
+      warn.classList.remove('hidden');
+    } else {
+      warn.classList.add('hidden');
+    }
+    validateAdd();
+  }
+  function validateAdd(){
+    var price = findPrice(selProduct.value, selSize.value, selBase.value);
+    var ok = price!=null && price>0 && Number(inQty.value)>0;
+    btnAdd.disabled = !ok;
+  }
+
+  // ---------- product autocomplete dropdown ----------
+  function renderProductSuggest(list){
+    if(!list || list.length===0){
+      productSuggest.classList.add('hidden');
+      productSuggest.innerHTML='';
+      return;
+    }
+    productSuggest.innerHTML = list.map(function(n){
+      var n2 = sizesFor(n).length;
+      return '<div class="suggest-item" data-name="'+esc(n)+'">'+esc(n)+'<div class="meta">'+n2+' ขนาด</div></div>';
+    }).join('');
+    productSuggest.classList.remove('hidden');
+  }
+  function matchProducts(q){
+    var ql = q.trim().toLowerCase();
+    if(!ql) return [];
+    return uniqueNames().filter(function(n){ return n.toLowerCase().indexOf(ql)>-1; }).slice(0,20);
+  }
+  selProduct.addEventListener('input', function(){
+    refreshSizeSelect();
+    renderProductSuggest(matchProducts(selProduct.value));
+  });
+  selProduct.addEventListener('focus', function(){
+    renderSizeSuggest([]); renderBaseSuggest([]);
+    if(selProduct.value.trim()) renderProductSuggest(matchProducts(selProduct.value));
+  });
+  productSuggest.addEventListener('click', function(e){
+    var item = e.target.closest('[data-name]');
+    if(!item) return;
+    selProduct.value = item.getAttribute('data-name');
+    renderProductSuggest([]);
+    refreshSizeSelect();
+  });
+
+  // ---------- size picker (styled like the product picker, but tap-only) ----------
+  function renderSizeSuggest(list){
+    if(!list || list.length===0){
+      sizeSuggest.classList.add('hidden');
+      sizeSuggest.innerHTML='';
+      return;
+    }
+    sizeSuggest.innerHTML = list.map(function(v){
+      return '<div class="suggest-item" data-size="'+esc(v)+'">'+esc(v)+'</div>';
+    }).join('');
+    sizeSuggest.classList.remove('hidden');
+  }
+  selSize.addEventListener('focus', function(){
+    if(selSize.disabled) return;
+    renderProductSuggest([]); renderBaseSuggest([]);
+    renderSizeSuggest(sizesFor(selProduct.value));
+  });
+  sizeSuggest.addEventListener('click', function(e){
+    var item = e.target.closest('[data-size]');
+    if(!item) return;
+    selSize.value = item.getAttribute('data-size');
+    renderSizeSuggest([]);
+    refreshBaseSelect();
+  });
+
+  // ---------- base picker (styled like the product picker, but tap-only) ----------
+  function renderBaseSuggest(list){
+    if(!list || list.length===0){
+      baseSuggest.classList.add('hidden');
+      baseSuggest.innerHTML='';
+      return;
+    }
+    baseSuggest.innerHTML = list.map(function(v){
+      var label = v===''?'(ไม่มี Base)':v;
+      return '<div class="suggest-item" data-base="'+esc(v)+'">'+esc(label)+'</div>';
+    }).join('');
+    baseSuggest.classList.remove('hidden');
+  }
+  selBase.addEventListener('focus', function(){
+    if(selBase.disabled) return;
+    renderProductSuggest([]); renderSizeSuggest([]);
+    renderBaseSuggest(basesFor(selProduct.value, selSize.value));
+  });
+  baseSuggest.addEventListener('click', function(e){
+    var item = e.target.closest('[data-base]');
+    if(!item) return;
+    selBase.value = item.getAttribute('data-base');
+    renderBaseSuggest([]);
+    updateAutoPrice();
+  });
+
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.search-wrap')){
+      renderProductSuggest([]);
+      renderSizeSuggest([]);
+      renderBaseSuggest([]);
+      if(typeof renderCbProductSuggest === 'function') renderCbProductSuggest([]);
+    }
+  });
+  inColor.addEventListener('input', validateAdd);
+  inQty.addEventListener('input', validateAdd);
+  inDiscount.addEventListener('input', function(){
+    billDiscount = Number(inDiscount.value)||0;
+    saveDiscount();
+    renderSummary();
+  });
+
+  document.getElementById('qtyMinus').addEventListener('click', function(){
+    var v = Math.max(1, (Number(inQty.value)||1) - 1);
+    inQty.value = v; validateAdd();
+  });
+  document.getElementById('qtyPlus').addEventListener('click', function(){
+    var v = (Number(inQty.value)||1) + 1;
+    inQty.value = v; validateAdd();
+  });
+
+  btnAdd.addEventListener('click', function(){
+    var price = findPrice(selProduct.value, selSize.value, selBase.value);
+    if(price==null) return;
+    var tint = Number(inTint.value)||0;
+    var qty = Number(inQty.value)||1;
+    var item = {
+      id: editingId || uid(),
+      name: selProduct.value,
+      size: selSize.value,
+      base: selBase.value,
+      color: inColor.value.trim(),
+      usage: currentUsageValue(),
+      price: price,
+      tint: tint,
+      qty: qty
+    };
+    if(editingId){
+      var idx = items.findIndex(function(i){return i.id===editingId;});
+      if(idx>-1) items[idx]=item;
+      editingId = null;
+      btnAdd.textContent = '+ เพิ่มรายการ';
+    } else {
+      items.push(item);
+    }
+    saveBill();
+    resetForm();
+    renderItems();
+    selProduct.focus();
+  });
+
+  function resetForm(){
+    selProduct.value='';
+    selSize.value=''; selSize.disabled=true; selSize.placeholder='เลือกสินค้าก่อน';
+    selBase.value=''; selBase.disabled=true; selBase.placeholder='-';
+    renderSizeSuggest([]);
+    renderBaseSuggest([]);
+    autoPrice.textContent = '฿0';
+    document.getElementById('priceWarning').classList.add('hidden');
+    inColor.value='';
+    usageMode='';
+    inUsageOther.value='';
+    renderUsageChips();
+    inTint.value='';
+    inQty.value=1;
+    updateFieldVisibility();
+    renderProductSuggest([]);
+    validateAdd();
+  }
+
+  // ---------- items list ----------
+  var itemsList = document.getElementById('itemsList');
+  function renderItems(){
+    itemsList.innerHTML='';
+    if(items.length===0){
+      itemsList.innerHTML = '<div class="empty">ยังไม่มีรายการ — เลือกสินค้าทางซ้ายแล้วกด "เพิ่มรายการ"</div>';
+    } else {
+      items.forEach(function(it, idx){
+        var total = (it.price+it.tint)*it.qty;
+        var unitPrice = it.price+it.tint;
+        var cbAmt = findCashback(it.name, it.base, it.size);
+        var subLine = (it.color ? ('สี '+esc(it.color)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
+        var cbLine = cbAmt>0 ? ('<div class="s" style="color:var(--amber);font-weight:600;">Cash Back ฿'+fmt(cbAmt)+'/ถัง (รวม '+fmt(cbAmt*it.qty)+')</div>') : '';
+        var div = document.createElement('div');
+        div.className='item';
+        div.innerHTML =
+          '<div style="display:flex;align-items:flex-start;gap:10px;min-width:0;">'+
+          '<div class="itemnum">'+(idx+1)+'</div>'+
+          '<div class="meta"><div class="p">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
+          '<div class="s">'+subLine+'</div>'+cbLine+'</div></div>'+
+          '<div class="amount">'+fmt(total)+'</div>'+
+          '<div class="actions">'+
+            '<button class="iconbtn" data-edit="'+it.id+'">แก้</button>'+
+            '<button class="iconbtn del" data-del="'+it.id+'">ลบ</button>'+
+          '</div>';
+        itemsList.appendChild(div);
+      });
+    }
+    itemsList.querySelectorAll('[data-edit]').forEach(function(b){
+      b.addEventListener('click', function(){ editItem(b.getAttribute('data-edit')); });
+    });
+    itemsList.querySelectorAll('[data-del]').forEach(function(b){
+      b.addEventListener('click', function(){ deleteItem(b.getAttribute('data-del')); });
+    });
+    renderSummary();
+  }
+
+  function editItem(id){
+    var it = items.find(function(i){return i.id===id;});
+    if(!it) return;
+    selProduct.value = it.name;
+    refreshSizeSelect();
+    selSize.value = it.size;
+    refreshBaseSelect();
+    selBase.value = it.base;
+    updateAutoPrice();
+    inColor.value = it.color;
+    if(it.usage && USAGE_PRESETS.indexOf(it.usage)>-1){
+      usageMode = it.usage;
+      inUsageOther.value = '';
+    } else if(it.usage){
+      usageMode = '__other__';
+      inUsageOther.value = it.usage;
+    } else {
+      usageMode = '';
+      inUsageOther.value = '';
+    }
+    renderUsageChips();
+    inTint.value = it.tint;
+    inQty.value = it.qty;
+    editingId = id;
+    btnAdd.textContent = 'บันทึกการแก้ไข';
+    validateAdd();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function deleteItem(id){
+    if(!confirm('ลบรายการนี้ใช่หรือไม่?')) return;
+    items = items.filter(function(i){return i.id!==id;});
+    saveBill();
+    renderItems();
+  }
+
+  function renderSummary(){
+    var sumProduct=0, sumTint=0, totalCashback=0;
+    items.forEach(function(it){
+      sumProduct += it.price*it.qty;
+      sumTint += it.tint*it.qty;
+      totalCashback += findCashback(it.name, it.base, it.size)*it.qty;
+    });
+    var stepHit = findStepCashback(sumProduct+sumTint);
+    if(stepHit) totalCashback += Number(stepHit.amount);
+    var discount = Number(billDiscount)||0;
+    var grand = Math.max(0, sumProduct+sumTint-discount);
+    document.getElementById('sumProduct').textContent = fmt(sumProduct);
+    document.getElementById('sumTint').textContent = fmt(sumTint);
+    var discRow = document.getElementById('sumDiscountRow');
+    if(discount>0){
+      discRow.style.display='';
+      document.getElementById('sumDiscount').textContent = '-'+fmt(discount);
+    } else {
+      discRow.style.display='none';
+    }
+    document.getElementById('sumGrand').textContent = fmt(grand);
+    var cbRow = document.getElementById('sumCashbackRow');
+    if(totalCashback>0){
+      cbRow.style.display='';
+      document.getElementById('sumCashbackLabel').textContent = 'Cash Back รวม (รับหลังชำระ)'+(stepHit?(' [รวม Step ครบ '+fmt(stepHit.threshold)+']'):'');
+      document.getElementById('sumCashback').textContent = fmt(totalCashback);
+    } else {
+      cbRow.style.display='none';
+    }
+  }
+
+  function esc(s){
+    var d=document.createElement('div');
+    d.textContent = s==null?'':s;
+    return d.innerHTML;
+  }
+
+  // ---------- new bill ----------
+  document.getElementById('btnNew').addEventListener('click', function(){
+    if(items.length>0 && !confirm('เริ่มบิลใหม่? รายการปัจจุบันจะถูกล้างทั้งหมด')) return;
+    items = [];
+    editingId = null;
+    billDiscount = 0;
+    inDiscount.value = '';
+    btnAdd.textContent = '+ เพิ่มรายการ';
+    saveBill();
+    saveDiscount();
+    resetForm();
+    renderItems();
+  });
+
+  // ---------- customer view / print ----------
+  var overlay = document.getElementById('overlay');
+  var btnMixMode = document.getElementById('btnMixMode');
+  var cvMode = 'customer';
+  document.getElementById('btnShow').addEventListener('click', function(){
+    cvMode = 'customer';
+    btnMixMode.textContent = 'โหมดผสมสี';
+    btnMixMode.classList.remove('active');
+    renderCustomerView();
+    overlay.classList.remove('hidden');
+  });
+  document.getElementById('btnCloseOverlay').addEventListener('click', function(){
+    overlay.classList.add('hidden');
+  });
+  document.getElementById('btnPrint').addEventListener('click', function(){
+    renderCustomerView();
+    window.print();
+  });
+  btnMixMode.addEventListener('click', function(){
+    cvMode = cvMode==='mix' ? 'customer' : 'mix';
+    btnMixMode.textContent = cvMode==='mix' ? 'โหมดลูกค้า' : 'โหมดผสมสี';
+    btnMixMode.classList.toggle('active', cvMode==='mix');
+    renderCustomerView();
+  });
+
+  function renderCustomerView(){
+    var cvItems = document.getElementById('cvItems');
+    cvItems.innerHTML='';
+    document.getElementById('cvTitle').textContent = cvMode==='mix' ? 'รายการสำหรับผสมสี' : 'สรุปรายการ';
+    if(items.length===0){
+      cvItems.innerHTML = '<div class="empty">ยังไม่มีรายการ</div>';
+    }
+    var sumProduct=0, sumTint=0, totalCashback=0;
+    items.forEach(function(it, idx){
+      var total = (it.price+it.tint)*it.qty;
+      var unitPrice = it.price+it.tint;
+      sumProduct += it.price*it.qty;
+      sumTint += it.tint*it.qty;
+      var cbAmt = findCashback(it.name, it.base, it.size);
+      totalCashback += cbAmt*it.qty;
+      var cbLine = cbAmt>0 ? ('<div class="sub" style="color:#B5721C;font-weight:700;">Cash Back ฿'+fmt(cbAmt)+'/ถัง (รวม '+fmt(cbAmt*it.qty)+')</div>') : '';
+      var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
+      var div = document.createElement('div');
+      if(cvMode==='mix'){
+        var productLine = esc(it.name)+' '+esc(it.size);
+        var baseBadge = it.base ? '<span class="basetag">เบส '+esc(it.base)+'</span>' : '';
+        var heading, headingClass, subLines='';
+        if(it.color){
+          heading = esc(it.color)+(it.usage ? (' · '+esc(it.usage)) : '');
+          headingClass = 'name colorchip';
+          subLines += '<div class="sub">'+productLine+(baseBadge?(' '+baseBadge):'')+'</div>';
+        } else {
+          heading = productLine+(baseBadge?(' '+baseBadge):'');
+          headingClass = 'name';
+          if(it.usage) subLines += '<div class="sub">'+esc(it.usage)+'</div>';
+        }
+        subLines += '<div class="sub">'+it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง</div>';
+        div.className='cv-item mix';
+        div.innerHTML =
+          '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
+          '<div><div class="'+headingClass+'">'+heading+'</div>'+subLines+cbLine+'</div></div>'+
+          '<div class="amt">'+fmt(total)+'</div>';
+      } else {
+        if(it.color){
+          var productLine2 = esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'');
+          var heading2 = esc(it.color)+(it.usage ? (' · '+esc(it.usage)) : '');
+          var subLine2 = it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
+          div.className='cv-item tagged';
+          div.innerHTML =
+            '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
+            '<div><div class="name colorchip">'+heading2+'</div>'+
+            '<div class="sub">'+productLine2+'</div>'+
+            '<div class="sub">'+subLine2+'</div>'+cbLine+'</div></div>'+
+            '<div class="amt">'+fmt(total)+'</div>';
+        } else {
+          var subLine = (it.usage ? (esc(it.usage)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
+          div.className='cv-item';
+          div.innerHTML =
+            '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
+            '<div><div class="name">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
+            '<div class="sub">'+subLine+'</div>'+cbLine+'</div></div>'+
+            '<div class="amt">'+fmt(total)+'</div>';
+        }
+      }
+      cvItems.appendChild(div);
+    });
+    var stepHit = findStepCashback(sumProduct+sumTint);
+    if(stepHit) totalCashback += Number(stepHit.amount);
+    var discount = Number(billDiscount)||0;
+    var grand = Math.max(0, sumProduct+sumTint-discount);
+    document.getElementById('cvSumProduct').textContent = fmt(sumProduct);
+    document.getElementById('cvSumTint').textContent = fmt(sumTint);
+    var discRow = document.getElementById('cvSumDiscountRow');
+    if(discount>0){
+      discRow.style.display='';
+      document.getElementById('cvSumDiscount').textContent = '-'+fmt(discount);
+    } else {
+      discRow.style.display='none';
+    }
+    document.getElementById('cvSumGrand').textContent = fmt(grand);
+    var cbRow = document.getElementById('cvSumCashbackRow');
+    if(totalCashback>0){
+      cbRow.style.display='';
+      document.getElementById('cvSumCashbackLabel').textContent = 'Cash Back รวม (รับหลังชำระ)'+(stepHit?(' [รวม Step ครบ '+fmt(stepHit.threshold)+']'):'');
+      document.getElementById('cvSumCashback').textContent = fmt(totalCashback);
+    } else {
+      cbRow.style.display='none';
+    }
+  }
+
+  // ---------- product management ----------
+  document.getElementById('toggleProdMgmt').addEventListener('click', function(){
+    var box = document.getElementById('prodMgmt');
+    var btn = document.getElementById('toggleProdMgmt');
+    box.classList.toggle('hidden');
+    btn.textContent = box.classList.contains('hidden') ? 'แสดง' : 'ซ่อน';
+  });
+
+  document.getElementById('btnAddProduct').addEventListener('click', async function(){
+    var name = document.getElementById('npName').value.trim();
+    var size = document.getElementById('npSize').value.trim();
+    var base = document.getElementById('npBase').value.trim();
+    var price = Number(document.getElementById('npPrice').value);
+    if(!name || !size || !price){
+      alert('กรุณากรอกชื่อสินค้า ขนาด และราคาให้ครบ');
+      return;
+    }
+    products.push({id:uid(), name:name, size:size, base:base, price:price});
+    await saveProducts();
+    document.getElementById('npName').value='';
+    document.getElementById('npSize').value='';
+    document.getElementById('npBase').value='';
+    document.getElementById('npPrice').value='';
+    renderProductMgmt();
+    refreshProductSelect();
+  });
+
+  document.getElementById('btnReloadCatalog').addEventListener('click', async function(){
+    if(!confirm('โหลดราคาสินค้าล่าสุด ('+FULL_CATALOG.length+' รายการ) จะแทนที่ฐานข้อมูลสินค้าทั้งหมดที่มีอยู่ ต้องการดำเนินการต่อหรือไม่?')) return;
+    products = seedProducts();
+    await saveProducts();
+    renderProductMgmt();
+    refreshProductSelect();
+    alert('อัปเดตฐานข้อมูลสินค้าเรียบร้อย ('+products.length+' รายการ)');
+  });
+
+  function renderProductMgmt(){
+    var list = document.getElementById('prodList');
+    list.innerHTML='';
+    var zeroCount = products.filter(function(p){return Number(p.price)===0;}).length;
+    var badge = document.getElementById('prodZeroBadge');
+    if(badge) badge.textContent = zeroCount>0 ? ('(⚠ '+zeroCount+' รายการยังไม่มีราคา)') : '';
+    if(zeroCount>0){
+      var banner = document.createElement('div');
+      banner.className='zerobanner';
+      banner.textContent = '⚠ พบสินค้า '+zeroCount+' รายการที่ยังไม่มีราคา (฿0) — แสดงไว้บนสุด กรุณาแก้ไขก่อนใช้งานจริง มิฉะนั้นพนักงานอาจขายราคา 0 บาทโดยไม่รู้ตัว';
+      list.appendChild(banner);
+    }
+    var sorted = products.slice().sort(function(a,b){
+      var az = Number(a.price)===0 ? 0 : 1;
+      var bz = Number(b.price)===0 ? 0 : 1;
+      return az-bz;
+    });
+    sorted.forEach(function(p){
+      var isZero = Number(p.price)===0;
+      var div = document.createElement('div');
+      div.className='prodmini'+(isZero?' zero':'');
+      div.innerHTML =
+        '<div><span style="font-weight:600">'+esc(p.name)+'</span> '+
+        '<span class="d">'+esc(p.size)+(p.base?(' · '+esc(p.base)):'')+'</span>'+
+        (isZero?'<div class="zerotag">⚠ ยังไม่มีราคา</div>':'')+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span class="p"'+(isZero?' style="color:var(--danger)"':'')+'>'+fmt(p.price)+'</span>'+
+        '<button class="iconbtn" data-editprod="'+p.id+'">แก้</button>'+
+        '<button class="iconbtn del" data-delprod="'+p.id+'">ลบ</button></div>';
+      list.appendChild(div);
+    });
+    list.querySelectorAll('[data-editprod]').forEach(function(b){
+      b.addEventListener('click', async function(){
+        var id = b.getAttribute('data-editprod');
+        var p = products.find(function(x){return x.id===id;});
+        if(!p) return;
+        var val = prompt('แก้ไขราคา: '+p.name+' '+p.size+(p.base?(' '+p.base):'')+'\n(ราคาปัจจุบัน '+fmt(p.price)+')', p.price);
+        if(val===null) return;
+        var num = Number(val);
+        if(!(num>=0) || isNaN(num)){
+          alert('กรุณากรอกราคาเป็นตัวเลขที่ถูกต้อง (0 หรือมากกว่า)');
+          return;
+        }
+        p.price = num;
+        await saveProducts();
+        renderProductMgmt();
+        refreshProductSelect();
+        updateAutoPrice();
+      });
+    });
+    list.querySelectorAll('[data-delprod]').forEach(function(b){
+      b.addEventListener('click', async function(){
+        if(!confirm('ลบสินค้านี้ออกจากฐานข้อมูล?')) return;
+        products = products.filter(function(p){return p.id!==b.getAttribute('data-delprod');});
+        await saveProducts();
+        renderProductMgmt();
+        refreshProductSelect();
+      });
+    });
+  }
+
+  function renderAll(){
+    refreshProductSelect();
+    renderItems();
+    renderProductMgmt();
+    resetForm();
+    inDiscount.value = billDiscount || '';
+  }
+
+  // ---------- menu overlay (product management + cash back settings) ----------
+  var menuOverlay = document.getElementById('menuOverlay');
+  document.getElementById('btnMenu').addEventListener('click', function(){
+    renderProductMgmt();
+    renderCashbackList();
+    renderStepList();
+    menuOverlay.classList.remove('hidden');
+  });
+  document.getElementById('btnCloseMenu').addEventListener('click', function(){
+    menuOverlay.classList.add('hidden');
+  });
+
+  document.getElementById('toggleCashback').addEventListener('click', function(){
+    var box = document.getElementById('cashbackMgmt');
+    var btn = document.getElementById('toggleCashback');
+    box.classList.toggle('hidden');
+    btn.textContent = box.classList.contains('hidden') ? 'แสดง' : 'ซ่อน';
+  });
+
+  // ---------- cash back: per-product conditions (base / size aware) ----------
+  var cbProduct = document.getElementById('cbProduct');
+  var cbProductSuggest = document.getElementById('cbProductSuggest');
+  var cbBase = document.getElementById('cbBase');
+  var cbSize = document.getElementById('cbSize');
+  var cbBaseField = document.getElementById('cbBaseField');
+  var cbBaseSizeRow = document.getElementById('cbBaseSizeRow');
+
+  function renderCbProductSuggest(list){
+    if(!list || list.length===0){
+      cbProductSuggest.classList.add('hidden');
+      cbProductSuggest.innerHTML='';
+      return;
+    }
+    cbProductSuggest.innerHTML = list.map(function(n){
+      return '<div class="suggest-item" data-name="'+esc(n)+'">'+esc(n)+'</div>';
+    }).join('');
+    cbProductSuggest.classList.remove('hidden');
+  }
+  function refreshCbOptions(){
+    var name = cbProduct.value.trim();
+    var bases = allBasesFor(name);
+    var sizes = sizesFor(name);
+    cbBase.innerHTML = '<option value="">ทุกเบส</option>' + bases.map(function(b){
+      return '<option value="'+esc(b)+'">'+esc(b)+'</option>';
+    }).join('');
+    cbSize.innerHTML = '<option value="">ทุกขนาด</option>' + sizes.map(function(s){
+      return '<option value="'+esc(s)+'">'+esc(s)+'</option>';
+    }).join('');
+    if(bases.length===0){
+      cbBaseField.style.display='none';
+      cbBaseSizeRow.classList.add('single');
+    } else {
+      cbBaseField.style.display='';
+      cbBaseSizeRow.classList.remove('single');
+    }
+  }
+  cbProduct.addEventListener('input', function(){
+    refreshCbOptions();
+    renderCbProductSuggest(matchProducts(cbProduct.value));
+  });
+  cbProduct.addEventListener('focus', function(){
+    if(cbProduct.value.trim()) renderCbProductSuggest(matchProducts(cbProduct.value));
+  });
+  cbProductSuggest.addEventListener('click', function(e){
+    var item = e.target.closest('[data-name]');
+    if(!item) return;
+    cbProduct.value = item.getAttribute('data-name');
+    renderCbProductSuggest([]);
+    refreshCbOptions();
+  });
+
+  document.getElementById('btnSaveCashback').addEventListener('click', async function(){
+    var name = cbProduct.value.trim();
+    var base = cbBaseField.style.display==='none' ? '' : cbBase.value;
+    var size = cbSize.value;
+    var amount = Number(document.getElementById('cbAmount').value);
+    if(!name || !amount){
+      alert('กรุณาเลือกสินค้าและกรอกจำนวน Cash Back ให้ครบ');
+      return;
+    }
+    var existing = cashbackConfig.find(function(c){
+      return c.name===name && (c.base||'')===(base||'') && (c.size||'')===(size||'');
+    });
+    if(existing){
+      existing.amount = amount;
+    } else {
+      cashbackConfig.push({id:uid(), name:name, base:base||'', size:size||'', amount:amount});
+    }
+    await saveCashback();
+    cbProduct.value='';
+    document.getElementById('cbAmount').value='';
+    refreshCbOptions();
+    renderCashbackList();
+    renderItems();
+  });
+
+  function renderCashbackList(){
+    var list = document.getElementById('cbList');
+    list.innerHTML='';
+    if(cashbackConfig.length===0){
+      list.innerHTML = '<div class="empty">ยังไม่ได้ตั้งค่า Cash Back</div>';
+      return;
+    }
+    cashbackConfig.forEach(function(c){
+      var condParts=[];
+      if(c.base) condParts.push('เบส '+c.base);
+      if(c.size) condParts.push(c.size);
+      var cond = condParts.length ? condParts.join(' · ') : 'ทุกเบส/ทุกขนาด';
+      var div = document.createElement('div');
+      div.className='prodmini';
+      div.innerHTML =
+        '<div><span style="font-weight:600">'+esc(c.name)+'</span><br><span class="d">'+esc(cond)+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+        '<span class="p">'+fmt(c.amount)+'/ถัง</span>'+
+        '<button class="iconbtn del" data-delcb="'+c.id+'">ลบ</button></div>';
+      list.appendChild(div);
+    });
+    list.querySelectorAll('[data-delcb]').forEach(function(b){
+      b.addEventListener('click', async function(){
+        if(!confirm('ลบการตั้งค่า Cash Back นี้?')) return;
+        cashbackConfig = cashbackConfig.filter(function(c){return c.id!==b.getAttribute('data-delcb');});
+        await saveCashback();
+        renderCashbackList();
+        renderItems();
+      });
+    });
+  }
+
+  // ---------- cash back: step tiers (buy X get Y) ----------
+  document.getElementById('btnAddStep').addEventListener('click', async function(){
+    var threshold = Number(document.getElementById('stepThreshold').value);
+    var amount = Number(document.getElementById('stepAmount').value);
+    if(!threshold || !amount){
+      alert('กรุณากรอกยอดซื้อและจำนวน Cash Back ให้ครบ');
+      return;
+    }
+    stepCashback.push({id:uid(), threshold:threshold, amount:amount});
+    stepCashback.sort(function(a,b){ return a.threshold-b.threshold; });
+    await saveStepCashback();
+    document.getElementById('stepThreshold').value='';
+    document.getElementById('stepAmount').value='';
+    renderStepList();
+    renderItems();
+  });
+
+  function renderStepList(){
+    var list = document.getElementById('stepList');
+    list.innerHTML='';
+    if(stepCashback.length===0){
+      list.innerHTML = '<div class="empty">ยังไม่ได้ตั้งค่า Step Cash Back</div>';
+      return;
+    }
+    stepCashback.forEach(function(s){
+      var div = document.createElement('div');
+      div.className='prodmini';
+      div.innerHTML =
+        '<div><span style="font-weight:600">ซื้อครบ '+fmt(s.threshold)+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+        '<span class="p">รับ '+fmt(s.amount)+'</span>'+
+        '<button class="iconbtn del" data-delstep="'+s.id+'">ลบ</button></div>';
+      list.appendChild(div);
+    });
+    list.querySelectorAll('[data-delstep]').forEach(function(b){
+      b.addEventListener('click', async function(){
+        if(!confirm('ลบ Step นี้?')) return;
+        stepCashback = stepCashback.filter(function(s){return s.id!==b.getAttribute('data-delstep');});
+        await saveStepCashback();
+        renderStepList();
+        renderItems();
+      });
+    });
+  }
+
+  loadAll();
+})();
+</script>
+
+</body>
+</html>
