@@ -470,6 +470,46 @@
   .cv-cb-detail .row{display:flex;justify-content:space-between;gap:10px;}
   .cv-cb-detail .row span:last-child{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
 
+  /* Mix mode: grouped-by-base, price-free, large-print view for the tinting station */
+  .mix-group-header{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin:20px 0 8px;padding-bottom:6px;
+    border-bottom:2px solid var(--blue);
+  }
+  .mix-group-header:first-child{margin-top:0;}
+  .mix-group-header .gname{
+    font-size:12.5px;font-weight:800;color:var(--blue);
+    text-transform:uppercase;letter-spacing:0.6px;
+  }
+  .mix-group-header .gqty{font-size:12.5px;font-weight:700;color:var(--ink-soft);}
+  .cv-item.mixbig{
+    flex-direction:column;align-items:stretch;gap:6px;
+    padding:16px 18px;
+  }
+  .cv-item.mixbig .mixtop{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  }
+  .cv-item.mixbig .mixhead{display:flex;align-items:center;gap:10px;min-width:0;}
+  .cv-item.mixbig .name.colorchip{
+    font-size:23px;padding:7px 16px;margin-bottom:0;letter-spacing:0.4px;
+  }
+  .cv-item.mixbig .name{font-size:18px;font-weight:700;}
+  .cv-item.mixbig .qty-big{
+    font-size:15px;font-weight:800;color:#fff;background:var(--blue);
+    border-radius:8px;padding:6px 12px;white-space:nowrap;flex-shrink:0;
+  }
+  .cv-item.mixbig .usage-big{
+    font-size:16px;font-weight:700;color:var(--blue);
+  }
+  .cv-item.mixbig .sub{font-size:12.5px;}
+  .cv-mixtotal{
+    background:var(--blue);color:#fff;border-radius:12px;
+    padding:16px 18px;margin-top:16px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;font-weight:600;
+  }
+  .cv-mixtotal span:last-child{font-size:26px;font-weight:800;}
+
   /* Quotation-style export image */
   .quote-doc{
     font-family:inherit;color:#1F2421;background:#fff;
@@ -640,11 +680,15 @@
   <div id="printarea">
     <div class="cv-title" id="cvTitle">สรุปรายการ</div>
     <div id="cvItems"></div>
-    <div class="cv-summary">
+    <div class="cv-summary" id="cvSummaryBlock">
       <div class="l"><span>รวมค่าสินค้า</span><span id="cvSumProduct">฿0</span></div>
       <div class="l"><span>รวมค่าแม่สี</span><span id="cvSumTint">฿0</span></div>
       <div class="l" id="cvSumDiscountRow" style="display:none;"><span>ส่วนลด (คูปอง)</span><span id="cvSumDiscount">-฿0</span></div>
       <div class="t"><span>ยอดรวม</span><span id="cvSumGrand">฿0</span></div>
+    </div>
+    <div class="cv-mixtotal hidden" id="cvMixTotal">
+      <span>รวมทั้งหมด</span>
+      <span><span id="cvMixTotalQty">0</span> ถัง</span>
     </div>
     <div class="cv-cb-box hidden" id="cvCashbackBox">
       <div class="cv-cb-main">
@@ -1500,16 +1544,68 @@
   function renderCustomerView(){
     var cvItems = document.getElementById('cvItems');
     cvItems.innerHTML='';
-    document.getElementById('cvTitle').textContent = cvMode==='mix' ? 'รายการสำหรับผสมสี' : 'สรุปรายการ';
+    var mixMode = cvMode==='mix';
+    document.getElementById('cvTitle').textContent = mixMode ? 'รายการสำหรับผสมสี' : 'สรุปรายการ';
     if(items.length===0){
       cvItems.innerHTML = '<div class="empty">ยังไม่มีรายการ</div>';
     }
-    var sumProduct=0, sumTint=0, totalCashback=0, cbDetails=[];
-    items.forEach(function(it, idx){
+    var sumProduct=0, sumTint=0, totalCashback=0, cbDetails=[], totalQty=0;
+
+    function buildCustomerCard(it, idx){
       var total = (it.price+it.tint)*it.qty;
       var unitPrice = it.price+it.tint;
+      var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
+      var div = document.createElement('div');
+      if(it.color){
+        var productLine2 = esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'');
+        var heading2 = esc(it.color)+(it.usage ? (' · '+esc(it.usage)) : '');
+        var subLine2 = it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
+        div.className='cv-item tagged';
+        div.innerHTML =
+          '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
+          '<div><div class="name colorchip">'+heading2+'</div>'+
+          '<div class="sub">'+productLine2+'</div>'+
+          '<div class="sub">'+subLine2+'</div></div></div>'+
+          '<div class="amt">'+fmt(total)+'</div>';
+      } else {
+        var subLine = (it.usage ? (esc(it.usage)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
+        div.className='cv-item';
+        div.innerHTML =
+          '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
+          '<div><div class="name">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
+          '<div class="sub">'+subLine+'</div></div></div>'+
+          '<div class="amt">'+fmt(total)+'</div>';
+      }
+      return div;
+    }
+
+    function buildMixCard(it, idx){
+      var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
+      var qtyBadge = '<span class="qty-big">'+it.qty+' ถัง</span>';
+      var div = document.createElement('div');
+      div.className='cv-item mixbig';
+      if(it.color){
+        var productLine = esc(it.name)+' '+esc(it.size);
+        div.innerHTML =
+          '<div class="mixtop"><div class="mixhead">'+numBadge+
+          '<span class="name colorchip">'+esc(it.color)+'</span></div>'+qtyBadge+'</div>'+
+          (it.usage ? '<div class="usage-big">'+esc(it.usage)+'</div>' : '')+
+          '<div class="sub">'+productLine+'</div>';
+      } else {
+        var productLine2 = esc(it.name)+' '+esc(it.size);
+        div.innerHTML =
+          '<div class="mixtop"><div class="mixhead">'+numBadge+
+          '<span class="name">'+productLine2+'</span></div>'+qtyBadge+'</div>'+
+          (it.usage ? '<div class="usage-big">'+esc(it.usage)+'</div>' : '');
+      }
+      return div;
+    }
+
+    // ---- compute totals (always, so switching modes stays instant) ----
+    items.forEach(function(it){
       sumProduct += it.price*it.qty;
       sumTint += it.tint*it.qty;
+      totalQty += it.qty;
       var cbAmt = findCashback(it.name, it.base, it.size, it.qty);
       if(cbAmt>0){
         totalCashback += cbAmt*it.qty;
@@ -1518,51 +1614,34 @@
           amount: cbAmt*it.qty
         });
       }
-      var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
-      var div = document.createElement('div');
-      if(cvMode==='mix'){
-        var productLine = esc(it.name)+' '+esc(it.size);
-        var baseBadge = it.base ? '<span class="basetag">เบส '+esc(it.base)+'</span>' : '';
-        var heading, headingClass, subLines='';
-        if(it.color){
-          heading = esc(it.color)+(it.usage ? (' · '+esc(it.usage)) : '');
-          headingClass = 'name colorchip';
-          subLines += '<div class="sub">'+productLine+(baseBadge?(' '+baseBadge):'')+'</div>';
-        } else {
-          heading = productLine+(baseBadge?(' '+baseBadge):'');
-          headingClass = 'name';
-          if(it.usage) subLines += '<div class="sub">'+esc(it.usage)+'</div>';
-        }
-        subLines += '<div class="sub">'+it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง</div>';
-        div.className='cv-item mix';
-        div.innerHTML =
-          '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
-          '<div><div class="'+headingClass+'">'+heading+'</div>'+subLines+'</div></div>'+
-          '<div class="amt">'+fmt(total)+'</div>';
-      } else {
-        if(it.color){
-          var productLine2 = esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'');
-          var heading2 = esc(it.color)+(it.usage ? (' · '+esc(it.usage)) : '');
-          var subLine2 = it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
-          div.className='cv-item tagged';
-          div.innerHTML =
-            '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
-            '<div><div class="name colorchip">'+heading2+'</div>'+
-            '<div class="sub">'+productLine2+'</div>'+
-            '<div class="sub">'+subLine2+'</div></div></div>'+
-            '<div class="amt">'+fmt(total)+'</div>';
-        } else {
-          var subLine = (it.usage ? (esc(it.usage)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
-          div.className='cv-item';
-          div.innerHTML =
-            '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
-            '<div><div class="name">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
-            '<div class="sub">'+subLine+'</div></div></div>'+
-            '<div class="amt">'+fmt(total)+'</div>';
-        }
-      }
-      cvItems.appendChild(div);
     });
+
+    if(mixMode){
+      // group by base so the mixer can batch same-base tins together
+      var hasAnyBase = items.some(function(it){ return !!it.base; });
+      if(hasAnyBase && items.length>0){
+        var groupKeys=[], groups={};
+        items.forEach(function(it, idx){
+          var key = it.base || 'อื่นๆ (ไม่มีเบส)';
+          if(!groups[key]){ groups[key]=[]; groupKeys.push(key); }
+          groups[key].push(idx);
+        });
+        groupKeys.forEach(function(key){
+          var idxs = groups[key];
+          var groupQty = idxs.reduce(function(s,i){ return s+items[i].qty; },0);
+          var header = document.createElement('div');
+          header.className='mix-group-header';
+          header.innerHTML = '<span class="gname">เบส '+esc(key)+'</span><span class="gqty">'+groupQty+' ถัง</span>';
+          cvItems.appendChild(header);
+          idxs.forEach(function(i){ cvItems.appendChild(buildMixCard(items[i], i)); });
+        });
+      } else {
+        items.forEach(function(it, idx){ cvItems.appendChild(buildMixCard(it, idx)); });
+      }
+    } else {
+      items.forEach(function(it, idx){ cvItems.appendChild(buildCustomerCard(it, idx)); });
+    }
+
     var stepHit = findStepCashback(sumProduct+sumTint);
     if(stepHit){
       totalCashback += Number(stepHit.amount);
@@ -1573,30 +1652,43 @@
     }
     var discount = Number(billDiscount)||0;
     var grand = Math.max(0, sumProduct+sumTint-discount);
-    document.getElementById('cvSumProduct').textContent = fmt(sumProduct);
-    document.getElementById('cvSumTint').textContent = fmt(sumTint);
-    var discRow = document.getElementById('cvSumDiscountRow');
-    if(discount>0){
-      discRow.style.display='';
-      document.getElementById('cvSumDiscount').textContent = '-'+fmt(discount);
-    } else {
-      discRow.style.display='none';
-    }
-    document.getElementById('cvSumGrand').textContent = fmt(grand);
+
+    var summaryBlock = document.getElementById('cvSummaryBlock');
+    var mixTotalBlock = document.getElementById('cvMixTotal');
     var cbBox = document.getElementById('cvCashbackBox');
-    var cbDetailEl = document.getElementById('cvCashbackDetail');
-    var cbToggle = document.getElementById('cvCashbackToggle');
-    var cbArrow = document.getElementById('cvCashbackToggleArrow');
-    if(totalCashback>0){
-      cbBox.classList.remove('hidden');
-      document.getElementById('cvSumCashback').textContent = fmt(totalCashback);
-      cbDetailEl.innerHTML = cbDetails.map(function(d){
-        return '<div class="row"><span>'+d.label+'</span><span>'+fmt(d.amount)+'</span></div>';
-      }).join('');
-      cbDetailEl.classList.add('hidden');
-      cbArrow.textContent = '▾';
-    } else {
+
+    if(mixMode){
+      // mix mode: no money on screen — just the tank tally
+      summaryBlock.classList.add('hidden');
       cbBox.classList.add('hidden');
+      mixTotalBlock.classList.remove('hidden');
+      document.getElementById('cvMixTotalQty').textContent = totalQty;
+    } else {
+      summaryBlock.classList.remove('hidden');
+      mixTotalBlock.classList.add('hidden');
+      document.getElementById('cvSumProduct').textContent = fmt(sumProduct);
+      document.getElementById('cvSumTint').textContent = fmt(sumTint);
+      var discRow = document.getElementById('cvSumDiscountRow');
+      if(discount>0){
+        discRow.style.display='';
+        document.getElementById('cvSumDiscount').textContent = '-'+fmt(discount);
+      } else {
+        discRow.style.display='none';
+      }
+      document.getElementById('cvSumGrand').textContent = fmt(grand);
+      var cbDetailEl = document.getElementById('cvCashbackDetail');
+      var cbArrow = document.getElementById('cvCashbackToggleArrow');
+      if(totalCashback>0){
+        cbBox.classList.remove('hidden');
+        document.getElementById('cvSumCashback').textContent = fmt(totalCashback);
+        cbDetailEl.innerHTML = cbDetails.map(function(d){
+          return '<div class="row"><span>'+d.label+'</span><span>'+fmt(d.amount)+'</span></div>';
+        }).join('');
+        cbDetailEl.classList.add('hidden');
+        cbArrow.textContent = '▾';
+      } else {
+        cbBox.classList.add('hidden');
+      }
     }
   }
   document.getElementById('cvCashbackToggle').addEventListener('click', function(){
