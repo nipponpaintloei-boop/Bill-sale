@@ -768,6 +768,7 @@
   var sizeSuggest = document.getElementById('sizeSuggest');
   var baseSuggest = document.getElementById('baseSuggest');
   var sizeBaseRow = document.getElementById('sizeBaseRow');
+  var sizeWrap = document.getElementById('sizeWrap');
   var baseField = document.getElementById('baseField');
   var colorField = document.getElementById('colorField');
   var tintField = document.getElementById('tintField');
@@ -870,18 +871,29 @@
     updateAutoPrice();
   }
   function updateFieldVisibility(){
+    var sizeOpts = sizesFor(selProduct.value);
+    var sizeNeedsPicker = sizeOpts.length > 1;
     var bases = basesFor(selProduct.value, selSize.value);
-    var hasRealBase = bases.some(function(b){ return b !== ''; });
-    if(hasRealBase){
-      sizeBaseRow.classList.remove('single');
-      baseField.style.display='';
+    var realBases = bases.filter(function(b){ return b !== ''; });
+    var isTintable = realBases.length > 0;
+    var baseNeedsPicker = isTintable && realBases.length > 1;
+
+    sizeWrap.style.display = sizeNeedsPicker ? '' : 'none';
+    baseField.style.display = baseNeedsPicker ? '' : 'none';
+    var visiblePickers = (sizeNeedsPicker?1:0) + (baseNeedsPicker?1:0);
+    if(visiblePickers===0){
+      sizeBaseRow.style.display='none';
+    } else {
+      sizeBaseRow.style.display='';
+      sizeBaseRow.classList.toggle('single', visiblePickers===1);
+    }
+
+    if(isTintable){
       colorField.style.display='';
       usageField.style.display='';
       tintField.style.display='';
       tintQtyRow.classList.remove('single');
     } else {
-      sizeBaseRow.classList.add('single');
-      baseField.style.display='none';
       colorField.style.display='none';
       usageField.style.display='none';
       tintField.style.display='none';
@@ -934,6 +946,7 @@
     renderProductSuggest(matchProducts(selProduct.value));
   });
   selProduct.addEventListener('focus', function(){
+    selProduct.select();
     renderSizeSuggest([]); renderBaseSuggest([]);
     if(selProduct.value.trim()) renderProductSuggest(matchProducts(selProduct.value));
   });
@@ -943,6 +956,7 @@
     selProduct.value = item.getAttribute('data-name');
     renderProductSuggest([]);
     refreshSizeSelect();
+    focusNextAfter('product');
   });
 
   // ---------- size picker (styled like the product picker, but tap-only) ----------
@@ -968,6 +982,7 @@
     selSize.value = item.getAttribute('data-size');
     renderSizeSuggest([]);
     refreshBaseSelect();
+    focusNextAfter('size');
   });
 
   // ---------- base picker (styled like the product picker, but tap-only) ----------
@@ -994,7 +1009,25 @@
     selBase.value = item.getAttribute('data-base');
     renderBaseSuggest([]);
     updateAutoPrice();
+    focusNextAfter('base');
   });
+
+  // ---------- smart auto-advance: focus the next field that actually needs input ----------
+  function focusNextAfter(step){
+    if(step==='product'){
+      if(sizeWrap.style.display!=='none'){ selSize.focus(); return; }
+      if(baseField.style.display!=='none'){ selBase.focus(); return; }
+      if(colorField.style.display!=='none'){ inColor.focus(); return; }
+      inQty.focus();
+    } else if(step==='size'){
+      if(baseField.style.display!=='none'){ selBase.focus(); return; }
+      if(colorField.style.display!=='none'){ inColor.focus(); return; }
+      inQty.focus();
+    } else if(step==='base'){
+      if(colorField.style.display!=='none'){ inColor.focus(); return; }
+      inQty.focus();
+    }
+  }
 
   document.addEventListener('click', function(e){
     if(!e.target.closest('.search-wrap')){
@@ -1005,7 +1038,13 @@
     }
   });
   inColor.addEventListener('input', validateAdd);
+  inColor.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); inQty.focus(); inQty.select(); }
+  });
   inQty.addEventListener('input', validateAdd);
+  inQty.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); if(!btnAdd.disabled) btnAdd.click(); }
+  });
   inDiscount.addEventListener('input', function(){
     billDiscount = Number(inDiscount.value)||0;
     saveDiscount();
@@ -1037,6 +1076,7 @@
       tint: tint,
       qty: qty
     };
+    var wasEditing = !!editingId;
     if(editingId){
       var idx = items.findIndex(function(i){return i.id===editingId;});
       if(idx>-1) items[idx]=item;
@@ -1046,19 +1086,30 @@
       items.push(item);
     }
     saveBill();
-    resetForm();
     renderItems();
-    selProduct.focus();
+    if(wasEditing){
+      // แก้ไขรายการเสร็จ — เคลียร์ฟอร์มทั้งหมดพร้อมเริ่มรายการใหม่
+      resetForm(false);
+      selProduct.focus();
+    } else {
+      // เพิ่มรายการใหม่สำเร็จ — คงสินค้า/ขนาด/เบสเดิมไว้ (มักผสมสีต่อจากสินค้าเดียวกัน)
+      // แล้วโฟกัสไปช่องถัดไปที่ต้องกรอกทันที ไม่ต้องแตะเลือกสินค้าซ้ำ
+      resetForm(true);
+      if(colorField.style.display!=='none'){ inColor.focus(); }
+      else { inQty.focus(); inQty.select(); }
+    }
   });
 
-  function resetForm(){
-    selProduct.value='';
-    selSize.value=''; selSize.disabled=true; selSize.placeholder='เลือกสินค้าก่อน';
-    selBase.value=''; selBase.disabled=true; selBase.placeholder='-';
-    renderSizeSuggest([]);
-    renderBaseSuggest([]);
-    autoPrice.textContent = '฿0';
-    document.getElementById('priceWarning').classList.add('hidden');
+  function resetForm(keepProduct){
+    if(!keepProduct){
+      selProduct.value='';
+      selSize.value=''; selSize.disabled=true; selSize.placeholder='เลือกสินค้าก่อน';
+      selBase.value=''; selBase.disabled=true; selBase.placeholder='-';
+      renderSizeSuggest([]);
+      renderBaseSuggest([]);
+      document.getElementById('priceWarning').classList.add('hidden');
+      renderProductSuggest([]);
+    }
     inColor.value='';
     usageSelected=[];
     usageOtherOn=false;
@@ -1067,8 +1118,7 @@
     inTint.value='';
     inQty.value=1;
     updateFieldVisibility();
-    renderProductSuggest([]);
-    validateAdd();
+    updateAutoPrice();
   }
 
   // ---------- items list ----------
