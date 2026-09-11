@@ -510,6 +510,41 @@
   }
   .cv-mixtotal span:last-child{font-size:26px;font-weight:800;}
 
+  /* Promotions settings — redesigned */
+  .promo-card-head{display:flex;align-items:flex-start;gap:12px;}
+  .promo-icon{
+    width:38px;height:38px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:800;
+    background:var(--amber-soft);color:#8A6621;border:1px solid #E8C989;
+  }
+  .promo-icon.step{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .promo-head-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .promo-card-title{font-size:15px;font-weight:700;color:var(--ink);}
+  .promo-card-desc{font-size:12.5px;color:var(--ink-soft);margin-top:3px;line-height:1.55;}
+  .promo-form{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);}
+  .promo-form .field:last-of-type{margin-bottom:14px;}
+  .promo-section-label{
+    font-size:11.5px;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px;
+  }
+  .promo-item{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    border:1px solid var(--line);border-left:3px solid var(--amber);
+    border-radius:10px;background:#fff;
+    padding:11px 13px;margin-bottom:8px;
+  }
+  .promo-item.step-item{border-left-color:var(--blue);}
+  .promo-item .pi-label{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .promo-item .pi-cond{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .promo-item .pi-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+  .promo-item .pi-amt{font-size:15px;font-weight:800;color:#B5721C;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .promo-item.step-item .pi-amt{color:var(--blue);}
+  .promo-empty{
+    text-align:center;color:var(--ink-soft);font-size:12.5px;
+    padding:18px 10px;border:1px dashed var(--line);border-radius:10px;
+  }
+
   /* Quotation-style export image */
   .quote-doc{
     font-family:inherit;color:#1F2421;background:#fff;
@@ -723,9 +758,17 @@
     </div>
 
     <div class="card">
-      <h2>ตั้งค่าโปรโมชั่น <button class="toggle" id="toggleCashback">แสดง</button></h2>
-      <div id="cashbackMgmt" class="hidden">
-        <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">Cash Back รายถัง (ต่อสินค้า)</div>
+      <div class="promo-card-head">
+        <div class="promo-icon">฿</div>
+        <div style="flex:1;min-width:0;">
+          <div class="promo-head-row">
+            <div class="promo-card-title">Cash Back ต่อสินค้า</div>
+            <button class="toggle" id="toggleCbProduct">แสดง</button>
+          </div>
+          <div class="promo-card-desc">คืนเงินเป็นรายถัง เจาะจงตามสินค้า เบส หรือขนาด ตั้งซื้อขั้นต่ำเพื่อรับสิทธิ์ได้</div>
+        </div>
+      </div>
+      <div id="cbProductBox" class="hidden promo-form">
         <div class="field search-wrap">
           <label>สินค้า</label>
           <input type="text" id="cbProduct" autocomplete="off" placeholder="พิมพ์ชื่อสินค้า...">
@@ -752,17 +795,36 @@
           </div>
         </div>
         <button class="smallbtn" id="btnSaveCashback" type="button">+ เพิ่มเงื่อนไข Cash Back</button>
-        <div id="cbList" style="margin-top:12px;"></div>
+        <div class="promo-section-label" style="margin-top:16px;">เงื่อนไขที่ตั้งไว้</div>
+        <div id="cbList"></div>
+      </div>
+    </div>
 
-        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);">
-          <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">โปรโมชั่นหลัก (Step) — ซื้อครบยอดรับ Cash Back</div>
-          <div class="row2">
-            <input type="number" id="stepThreshold" min="0" placeholder="ยอดซื้อครบ (บาท)">
-            <input type="number" id="stepAmount" min="0" placeholder="รับ Cash Back (บาท)">
+    <div class="card">
+      <div class="promo-card-head">
+        <div class="promo-icon step">Σ</div>
+        <div style="flex:1;min-width:0;">
+          <div class="promo-head-row">
+            <div class="promo-card-title">Cash Back ตามยอดซื้อ (Step)</div>
+            <button class="toggle" id="toggleCbStep">แสดง</button>
           </div>
-          <button class="smallbtn" id="btnAddStep" type="button" style="margin-top:8px;">+ เพิ่ม Step</button>
-          <div id="stepList" style="margin-top:10px;"></div>
+          <div class="promo-card-desc">ลูกค้าซื้อครบยอดที่กำหนด รับ Cash Back ก้อนเดียวทันที ไม่ผูกกับสินค้าใดสินค้าหนึ่ง — ตั้งได้หลายขั้น</div>
         </div>
+      </div>
+      <div id="cbStepBox" class="hidden promo-form">
+        <div class="row2">
+          <div class="field">
+            <label>ยอดซื้อครบ (บาท)</label>
+            <input type="number" id="stepThreshold" min="0" placeholder="เช่น 5000">
+          </div>
+          <div class="field">
+            <label>รับ Cash Back (บาท)</label>
+            <input type="number" id="stepAmount" min="0" placeholder="เช่น 200">
+          </div>
+        </div>
+        <button class="smallbtn" id="btnAddStep" type="button">+ เพิ่ม Step</button>
+        <div class="promo-section-label" style="margin-top:16px;">ขั้นที่ตั้งไว้ (เรียงจากน้อยไปมาก)</div>
+        <div id="stepList"></div>
       </div>
     </div>
 
@@ -1798,9 +1860,15 @@
     menuOverlay.classList.add('hidden');
   });
 
-  document.getElementById('toggleCashback').addEventListener('click', function(){
-    var box = document.getElementById('cashbackMgmt');
-    var btn = document.getElementById('toggleCashback');
+  document.getElementById('toggleCbProduct').addEventListener('click', function(){
+    var box = document.getElementById('cbProductBox');
+    var btn = document.getElementById('toggleCbProduct');
+    box.classList.toggle('hidden');
+    btn.textContent = box.classList.contains('hidden') ? 'แสดง' : 'ซ่อน';
+  });
+  document.getElementById('toggleCbStep').addEventListener('click', function(){
+    var box = document.getElementById('cbStepBox');
+    var btn = document.getElementById('toggleCbStep');
     box.classList.toggle('hidden');
     btn.textContent = box.classList.contains('hidden') ? 'แสดง' : 'ซ่อน';
   });
@@ -1889,7 +1957,7 @@
     var list = document.getElementById('cbList');
     list.innerHTML='';
     if(cashbackConfig.length===0){
-      list.innerHTML = '<div class="empty">ยังไม่ได้ตั้งค่า Cash Back</div>';
+      list.innerHTML = '<div class="promo-empty">ยังไม่ได้ตั้งค่า Cash Back ต่อสินค้า</div>';
       return;
     }
     cashbackConfig.forEach(function(c){
@@ -1899,11 +1967,11 @@
       if(Number(c.minQty)>0) condParts.push('ซื้อครบ '+Number(c.minQty)+' ถังขึ้นไป');
       var cond = condParts.length ? condParts.join(' · ') : 'ทุกเบส/ทุกขนาด';
       var div = document.createElement('div');
-      div.className='prodmini';
+      div.className='promo-item';
       div.innerHTML =
-        '<div><span style="font-weight:600">'+esc(c.name)+'</span><br><span class="d">'+esc(cond)+'</span></div>'+
-        '<div style="display:flex;align-items:center;gap:10px;">'+
-        '<span class="p">'+fmt(c.amount)+'/ถัง</span>'+
+        '<div style="min-width:0;"><div class="pi-label">'+esc(c.name)+'</div><div class="pi-cond">'+esc(cond)+'</div></div>'+
+        '<div class="pi-right">'+
+        '<span class="pi-amt">'+fmt(c.amount)+'/ถัง</span>'+
         '<button class="iconbtn del" data-delcb="'+c.id+'">ลบ</button></div>';
       list.appendChild(div);
     });
@@ -1939,16 +2007,17 @@
     var list = document.getElementById('stepList');
     list.innerHTML='';
     if(stepCashback.length===0){
-      list.innerHTML = '<div class="empty">ยังไม่ได้ตั้งค่า Step Cash Back</div>';
+      list.innerHTML = '<div class="promo-empty">ยังไม่ได้ตั้งค่า Cash Back ตามยอดซื้อ</div>';
       return;
     }
-    stepCashback.forEach(function(s){
+    stepCashback.forEach(function(s, idx){
       var div = document.createElement('div');
-      div.className='prodmini';
+      div.className='promo-item step-item';
       div.innerHTML =
-        '<div><span style="font-weight:600">ซื้อครบ '+fmt(s.threshold)+'</span></div>'+
-        '<div style="display:flex;align-items:center;gap:10px;">'+
-        '<span class="p">รับ '+fmt(s.amount)+'</span>'+
+        '<div style="min-width:0;"><div class="pi-label">ขั้น '+(idx+1)+' — ซื้อครบ '+fmt(s.threshold)+'</div>'+
+        '<div class="pi-cond">ยอดสินค้า+แม่สีรวมถึงเกณฑ์นี้ รับทันที</div></div>'+
+        '<div class="pi-right">'+
+        '<span class="pi-amt">+'+fmt(s.amount)+'</span>'+
         '<button class="iconbtn del" data-delstep="'+s.id+'">ลบ</button></div>';
       list.appendChild(div);
     });
