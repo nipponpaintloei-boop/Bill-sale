@@ -395,6 +395,23 @@
     font-variant-numeric:tabular-nums;
   }
   .cv-summary .t span:last-child{font-size:20px;font-weight:700;letter-spacing:0.2px;}
+  .cv-cb-box{
+    background:#FFF6E6;border:1px solid #F0D28A;border-radius:12px;
+    padding:14px 16px;margin-top:10px;
+  }
+  .cv-cb-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .cv-cb-label{font-size:13px;font-weight:600;color:#8A6621;}
+  .cv-cb-amt{font-size:23px;font-weight:800;color:#B5721C;font-variant-numeric:tabular-nums;letter-spacing:0.2px;white-space:nowrap;}
+  .cv-cb-toggle{
+    display:inline-block;margin-top:6px;background:none;border:none;padding:0;
+    font-size:11.5px;color:#8A6621;text-decoration:underline;cursor:pointer;
+  }
+  .cv-cb-detail{
+    margin-top:9px;padding-top:9px;border-top:1px dashed #E8C989;
+    font-size:11.5px;color:#8A6621;line-height:1.8;
+  }
+  .cv-cb-detail .row{display:flex;justify-content:space-between;gap:10px;}
+  .cv-cb-detail .row span:last-child{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
 
   /* Quotation-style export image */
   .quote-doc{
@@ -555,10 +572,18 @@
       <div class="l"><span>รวมค่าแม่สี</span><span id="cvSumTint">฿0</span></div>
       <div class="l" id="cvSumDiscountRow" style="display:none;"><span>ส่วนลด (คูปอง)</span><span id="cvSumDiscount">-฿0</span></div>
       <div class="t"><span>ยอดรวม</span><span id="cvSumGrand">฿0</span></div>
-      <div class="l" id="cvSumCashbackRow" style="display:none;color:#FFDCA0;"><span id="cvSumCashbackLabel">Cash Back รวม (รับหลังชำระ)</span><span id="cvSumCashback">฿0</span></div>
+    </div>
+    <div class="cv-cb-box hidden" id="cvCashbackBox">
+      <div class="cv-cb-main">
+        <span class="cv-cb-label">Cash Back รวม (รับหลังชำระ)</span>
+        <span class="cv-cb-amt" id="cvSumCashback">฿0</span>
+      </div>
+      <button type="button" class="cv-cb-toggle" id="cvCashbackToggle">ดูรายละเอียด <span id="cvCashbackToggleArrow">▾</span></button>
+      <div class="cv-cb-detail hidden" id="cvCashbackDetail"></div>
     </div>
   </div>
 </div>
+
 
 <div class="overlay hidden" id="menuOverlay">
   <div class="closebar"><button id="btnCloseMenu" type="button">ปิด</button></div>
@@ -1306,15 +1331,20 @@
     if(items.length===0){
       cvItems.innerHTML = '<div class="empty">ยังไม่มีรายการ</div>';
     }
-    var sumProduct=0, sumTint=0, totalCashback=0;
+    var sumProduct=0, sumTint=0, totalCashback=0, cbDetails=[];
     items.forEach(function(it, idx){
       var total = (it.price+it.tint)*it.qty;
       var unitPrice = it.price+it.tint;
       sumProduct += it.price*it.qty;
       sumTint += it.tint*it.qty;
       var cbAmt = findCashback(it.name, it.base, it.size, it.qty);
-      totalCashback += cbAmt*it.qty;
-      var cbLine = cbAmt>0 ? ('<div class="sub" style="color:#B5721C;font-weight:700;">Cash Back ฿'+fmt(cbAmt)+'/ถัง (รวม '+fmt(cbAmt*it.qty)+')</div>') : '';
+      if(cbAmt>0){
+        totalCashback += cbAmt*it.qty;
+        cbDetails.push({
+          label: esc(it.name)+' '+esc(it.size)+' ('+fmt(cbAmt)+'/ถัง × '+it.qty+')',
+          amount: cbAmt*it.qty
+        });
+      }
       var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
       var div = document.createElement('div');
       if(cvMode==='mix'){
@@ -1334,7 +1364,7 @@
         div.className='cv-item mix';
         div.innerHTML =
           '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
-          '<div><div class="'+headingClass+'">'+heading+'</div>'+subLines+cbLine+'</div></div>'+
+          '<div><div class="'+headingClass+'">'+heading+'</div>'+subLines+'</div></div>'+
           '<div class="amt">'+fmt(total)+'</div>';
       } else {
         if(it.color){
@@ -1346,7 +1376,7 @@
             '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
             '<div><div class="name colorchip">'+heading2+'</div>'+
             '<div class="sub">'+productLine2+'</div>'+
-            '<div class="sub">'+subLine2+'</div>'+cbLine+'</div></div>'+
+            '<div class="sub">'+subLine2+'</div></div></div>'+
             '<div class="amt">'+fmt(total)+'</div>';
         } else {
           var subLine = (it.usage ? (esc(it.usage)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
@@ -1354,14 +1384,20 @@
           div.innerHTML =
             '<div style="display:flex;align-items:flex-start;gap:10px;">'+numBadge+
             '<div><div class="name">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
-            '<div class="sub">'+subLine+'</div>'+cbLine+'</div></div>'+
+            '<div class="sub">'+subLine+'</div></div></div>'+
             '<div class="amt">'+fmt(total)+'</div>';
         }
       }
       cvItems.appendChild(div);
     });
     var stepHit = findStepCashback(sumProduct+sumTint);
-    if(stepHit) totalCashback += Number(stepHit.amount);
+    if(stepHit){
+      totalCashback += Number(stepHit.amount);
+      cbDetails.push({
+        label: 'โปรโมชั่นซื้อครบ '+fmt(stepHit.threshold),
+        amount: Number(stepHit.amount)
+      });
+    }
     var discount = Number(billDiscount)||0;
     var grand = Math.max(0, sumProduct+sumTint-discount);
     document.getElementById('cvSumProduct').textContent = fmt(sumProduct);
@@ -1374,15 +1410,28 @@
       discRow.style.display='none';
     }
     document.getElementById('cvSumGrand').textContent = fmt(grand);
-    var cbRow = document.getElementById('cvSumCashbackRow');
+    var cbBox = document.getElementById('cvCashbackBox');
+    var cbDetailEl = document.getElementById('cvCashbackDetail');
+    var cbToggle = document.getElementById('cvCashbackToggle');
+    var cbArrow = document.getElementById('cvCashbackToggleArrow');
     if(totalCashback>0){
-      cbRow.style.display='';
-      document.getElementById('cvSumCashbackLabel').textContent = 'Cash Back รวม (รับหลังชำระ)'+(stepHit?(' [รวม Step ครบ '+fmt(stepHit.threshold)+']'):'');
+      cbBox.classList.remove('hidden');
       document.getElementById('cvSumCashback').textContent = fmt(totalCashback);
+      cbDetailEl.innerHTML = cbDetails.map(function(d){
+        return '<div class="row"><span>'+d.label+'</span><span>'+fmt(d.amount)+'</span></div>';
+      }).join('');
+      cbDetailEl.classList.add('hidden');
+      cbArrow.textContent = '▾';
     } else {
-      cbRow.style.display='none';
+      cbBox.classList.add('hidden');
     }
   }
+  document.getElementById('cvCashbackToggle').addEventListener('click', function(){
+    var detail = document.getElementById('cvCashbackDetail');
+    var arrow = document.getElementById('cvCashbackToggleArrow');
+    var open = detail.classList.toggle('hidden');
+    arrow.textContent = open ? '▾' : '▴';
+  });
 
   // ---------- product management ----------
   document.getElementById('toggleProdMgmt').addEventListener('click', function(){
