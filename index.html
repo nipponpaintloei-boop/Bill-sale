@@ -1073,7 +1073,6 @@
     selProduct.value = item.getAttribute('data-name');
     renderProductSuggest([]);
     refreshSizeSelect();
-    focusNextAfter('product');
   });
 
   // ---------- size picker (styled like the product picker, but tap-only) ----------
@@ -1088,18 +1087,21 @@
     }).join('');
     sizeSuggest.classList.remove('hidden');
   }
-  selSize.addEventListener('focus', function(){
+  function openSizeSuggest(){
     if(selSize.disabled) return;
     renderProductSuggest([]); renderBaseSuggest([]);
     renderSizeSuggest(sizesFor(selProduct.value));
-  });
+  }
+  // bind to both focus (keyboard/tab) and click (tap while already focused) so the
+  // list always reopens even if the field was already focused from a previous step
+  selSize.addEventListener('focus', openSizeSuggest);
+  selSize.addEventListener('click', openSizeSuggest);
   sizeSuggest.addEventListener('click', function(e){
     var item = e.target.closest('[data-size]');
     if(!item) return;
     selSize.value = item.getAttribute('data-size');
     renderSizeSuggest([]);
     refreshBaseSelect();
-    focusNextAfter('size');
   });
 
   // ---------- base picker (styled like the product picker, but tap-only) ----------
@@ -1115,36 +1117,20 @@
     }).join('');
     baseSuggest.classList.remove('hidden');
   }
-  selBase.addEventListener('focus', function(){
+  function openBaseSuggest(){
     if(selBase.disabled) return;
     renderProductSuggest([]); renderSizeSuggest([]);
     renderBaseSuggest(basesFor(selProduct.value, selSize.value));
-  });
+  }
+  selBase.addEventListener('focus', openBaseSuggest);
+  selBase.addEventListener('click', openBaseSuggest);
   baseSuggest.addEventListener('click', function(e){
     var item = e.target.closest('[data-base]');
     if(!item) return;
     selBase.value = item.getAttribute('data-base');
     renderBaseSuggest([]);
     updateAutoPrice();
-    focusNextAfter('base');
   });
-
-  // ---------- smart auto-advance: focus the next field that actually needs input ----------
-  function focusNextAfter(step){
-    if(step==='product'){
-      if(sizeWrap.style.display!=='none'){ selSize.focus(); return; }
-      if(baseField.style.display!=='none'){ selBase.focus(); return; }
-      if(colorField.style.display!=='none'){ inColor.focus(); return; }
-      inQty.focus();
-    } else if(step==='size'){
-      if(baseField.style.display!=='none'){ selBase.focus(); return; }
-      if(colorField.style.display!=='none'){ inColor.focus(); return; }
-      inQty.focus();
-    } else if(step==='base'){
-      if(colorField.style.display!=='none'){ inColor.focus(); return; }
-      inQty.focus();
-    }
-  }
 
   document.addEventListener('click', function(e){
     if(!e.target.closest('.search-wrap')){
@@ -1207,13 +1193,9 @@
     if(wasEditing){
       // แก้ไขรายการเสร็จ — เคลียร์ฟอร์มทั้งหมดพร้อมเริ่มรายการใหม่
       resetForm(false);
-      selProduct.focus();
     } else {
       // เพิ่มรายการใหม่สำเร็จ — คงสินค้า/ขนาด/เบสเดิมไว้ (มักผสมสีต่อจากสินค้าเดียวกัน)
-      // แล้วโฟกัสไปช่องถัดไปที่ต้องกรอกทันที ไม่ต้องแตะเลือกสินค้าซ้ำ
       resetForm(true);
-      if(colorField.style.display!=='none'){ inColor.focus(); }
-      else { inQty.focus(); inQty.select(); }
     }
   });
 
