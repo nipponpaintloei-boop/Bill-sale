@@ -202,12 +202,12 @@
   .item .meta .p{font-weight:600;}
   .item .meta .s{color:var(--ink-soft);}
   .itemnum{
-    min-width:24px;height:24px;
+    min-width:21px;height:21px;
     border-radius:50%;
     background:var(--blue);
     color:#fff;
-    font-size:12.5px;
-    font-weight:700;
+    font-size:11px;
+    font-weight:600;
     display:flex;align-items:center;justify-content:center;
     flex-shrink:0;
   }
@@ -343,49 +343,58 @@
     background:var(--paper);
     z-index:50;
     overflow-y:auto;
-    padding:26px 20px 40px;
+    padding:20px 18px 36px;
   }
   .overlay .closebar{
-    display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;
+    display:flex;justify-content:flex-end;gap:7px;margin-bottom:18px;
   }
   .overlay .closebar button{
-    background:var(--blue);color:#fff;border:none;border-radius:8px;
-    padding:10px 16px;font-size:14px;cursor:pointer;
+    background:var(--blue);color:#fff;border:none;border-radius:7px;
+    padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;
+    letter-spacing:0.1px;
   }
   .overlay .closebar button.modebtn{
-    background:#fff;color:var(--blue);border:1px solid var(--blue);
+    background:#fff;color:var(--blue);border:1px solid var(--line);
   }
   .overlay .closebar button.modebtn.active{
     background:var(--amber);color:#fff;border-color:var(--amber);
   }
   .cv-title{
-    text-align:center;font-size:18px;font-weight:700;margin:4px 0 16px;color:var(--blue);
+    text-align:center;font-size:13px;font-weight:600;margin:0 0 18px;
+    color:var(--ink-soft);letter-spacing:1.6px;text-transform:uppercase;
   }
   .cv-item{
-    background:#fff;border:1px solid var(--line);border-radius:10px;
-    padding:12px 14px;margin-bottom:9px;
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:8px;
     display:flex;justify-content:space-between;align-items:center;gap:12px;
+    box-shadow:0 1px 2px rgba(31,36,33,0.04);
   }
-  .cv-item .name{font-size:14.5px;font-weight:700;}
-  .cv-item .sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
-  .cv-item .amt{font-size:16px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .cv-item .name{font-size:13.5px;font-weight:600;letter-spacing:0.1px;}
+  .cv-item .sub{font-size:11.5px;color:var(--ink-soft);margin-top:3px;line-height:1.5;}
+  .cv-item .amt{font-size:14.5px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .cv-item.mix{align-items:flex-start;}
   .cv-item.tagged{align-items:flex-start;}
   .name.colorchip{
     display:inline-block;
-    font-size:21px;font-weight:800;letter-spacing:0.4px;
-    background:var(--amber-soft);color:#7A5A1E;
-    border:1px solid #E8C989;border-radius:8px;
-    padding:4px 10px;margin-bottom:5px;
+    font-size:13.5px;font-weight:700;letter-spacing:0.2px;
+    background:var(--amber-soft);color:#8A6621;
+    border:1px solid #E8C989;border-radius:6px;
+    padding:3px 9px;margin-bottom:6px;
   }
-  .cv-item.mix .sub{font-size:12.5px;margin-top:2px;}
-  .cv-item.mix .amt{font-size:13px;font-weight:600;color:var(--ink-soft);margin-top:3px;}
+  .cv-item.mix .sub{font-size:11.5px;margin-top:2px;}
+  .cv-item.mix .amt{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-top:3px;}
   .cv-summary{
-    background:var(--blue);color:#fff;border-radius:10px;
-    padding:14px 16px;margin-top:14px;
+    background:var(--blue);color:#fff;border-radius:12px;
+    padding:16px 18px;margin-top:16px;
   }
-  .cv-summary .l{display:flex;justify-content:space-between;font-size:13px;opacity:0.85;margin-bottom:4px;font-variant-numeric:tabular-nums;}
-  .cv-summary .t{display:flex;justify-content:space-between;font-size:21px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;}
+  .cv-summary .l{display:flex;justify-content:space-between;font-size:12px;opacity:0.75;margin-bottom:5px;font-variant-numeric:tabular-nums;}
+  .cv-summary .t{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;font-weight:500;margin-top:8px;padding-top:10px;
+    border-top:1px solid rgba(255,255,255,0.18);
+    font-variant-numeric:tabular-nums;
+  }
+  .cv-summary .t span:last-child{font-size:20px;font-weight:700;letter-spacing:0.2px;}
 
   /* Quotation-style export image */
   .quote-doc{
@@ -572,8 +581,9 @@
     </div>
 
     <div class="card">
-      <h2>ตั้งค่า Cash Back <button class="toggle" id="toggleCashback">แสดง</button></h2>
+      <h2>ตั้งค่าโปรโมชั่น <button class="toggle" id="toggleCashback">แสดง</button></h2>
       <div id="cashbackMgmt" class="hidden">
+        <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">Cash Back รายถัง (ต่อสินค้า)</div>
         <div class="field search-wrap">
           <label>สินค้า</label>
           <input type="text" id="cbProduct" autocomplete="off" placeholder="พิมพ์ชื่อสินค้า...">
@@ -589,15 +599,21 @@
             <select id="cbSize"><option value="">ทุกขนาด</option></select>
           </div>
         </div>
-        <div class="field">
-          <label>Cash Back ต่อถัง (บาท)</label>
-          <input type="number" id="cbAmount" min="0" placeholder="0">
+        <div class="row2">
+          <div class="field">
+            <label>Cash Back ต่อถัง (บาท)</label>
+            <input type="number" id="cbAmount" min="0" placeholder="0">
+          </div>
+          <div class="field">
+            <label>ซื้อขั้นต่ำกี่ถังถึงได้ (เว้นว่าง = ไม่กำหนด)</label>
+            <input type="number" id="cbMinQty" min="0" placeholder="เช่น 4">
+          </div>
         </div>
         <button class="smallbtn" id="btnSaveCashback" type="button">+ เพิ่มเงื่อนไข Cash Back</button>
         <div id="cbList" style="margin-top:12px;"></div>
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);">
-          <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">Cash Back แบบครบยอด (Step)</div>
+          <div style="font-size:13.5px;font-weight:700;margin-bottom:8px;">โปรโมชั่นหลัก (Step) — ซื้อครบยอดรับ Cash Back</div>
           <div class="row2">
             <input type="number" id="stepThreshold" min="0" placeholder="ยอดซื้อครบ (บาท)">
             <input type="number" id="stepAmount" min="0" placeholder="รับ Cash Back (บาท)">
@@ -632,64 +648,63 @@
   }
 
   // ---------- storage ----------
-  async function loadAll(){
+  // ใช้ localStorage ของเบราว์เซอร์โดยตรง (เก็บถาวรบนเครื่อง ไม่หายเมื่อรีเฟรช/ปิดแอป)
+  // เดิมใช้ window.storage ซึ่งเป็น API เฉพาะของ Claude artifact เท่านั้น เมื่อนำไฟล์นี้ไป
+  // ใช้งานจริงนอก claude.ai (PWA ของร้าน) window.storage จะไม่มีอยู่ ทำให้บันทึกไม่ติดจริง
+  var STORE_PREFIX = 'nipponbill:';
+  function storeGet(key){
     try{
-      var p = await window.storage.get('products');
-      products = p ? JSON.parse(p.value) : seedProducts();
+      var raw = localStorage.getItem(STORE_PREFIX+key);
+      return raw===null ? null : JSON.parse(raw);
     }catch(e){
-      products = seedProducts();
+      return null;
     }
+  }
+  function storeSet(key, value){
+    try{
+      localStorage.setItem(STORE_PREFIX+key, JSON.stringify(value));
+      return true;
+    }catch(e){
+      console.error('บันทึกข้อมูลไม่สำเร็จ', e);
+      return false;
+    }
+  }
+  function loadAll(){
+    products = storeGet('products') || seedProducts();
     if(!products || products.length===0) products = seedProducts();
-    try{
-      var b = await window.storage.get('current-bill');
-      items = b ? JSON.parse(b.value) : [];
-    }catch(e){
-      items = [];
-    }
-    try{
-      var cb = await window.storage.get('cashback-config');
-      cashbackConfig = cb ? JSON.parse(cb.value) : [];
-    }catch(e){
-      cashbackConfig = [];
-    }
-    try{
-      var d = await window.storage.get('current-discount');
-      billDiscount = d ? (Number(JSON.parse(d.value))||0) : 0;
-    }catch(e){
-      billDiscount = 0;
-    }
-    try{
-      var sc = await window.storage.get('step-cashback');
-      stepCashback = sc ? JSON.parse(sc.value) : [];
-    }catch(e){
-      stepCashback = [];
-    }
+    items = storeGet('current-bill') || [];
+    cashbackConfig = storeGet('cashback-config') || [];
+    billDiscount = Number(storeGet('current-discount')) || 0;
+    stepCashback = storeGet('step-cashback') || [];
     renderAll();
   }
   async function saveProducts(){
-    try{ await window.storage.set('products', JSON.stringify(products)); }catch(e){}
+    storeSet('products', products);
   }
   async function saveBill(){
-    try{ await window.storage.set('current-bill', JSON.stringify(items)); }catch(e){}
+    storeSet('current-bill', items);
   }
   async function saveCashback(){
-    try{ await window.storage.set('cashback-config', JSON.stringify(cashbackConfig)); }catch(e){}
+    storeSet('cashback-config', cashbackConfig);
   }
   async function saveDiscount(){
-    try{ await window.storage.set('current-discount', JSON.stringify(billDiscount)); }catch(e){}
+    storeSet('current-discount', billDiscount);
   }
   async function saveStepCashback(){
-    try{ await window.storage.set('step-cashback', JSON.stringify(stepCashback)); }catch(e){}
+    storeSet('step-cashback', stepCashback);
   }
-  function findCashback(name, base, size){
+  function findCashback(name, base, size, qty){
     var matches = cashbackConfig.filter(function(c){
+      var minQty = Number(c.minQty)||0;
       return c.name===name &&
         (!c.base || c.base===(base||'')) &&
-        (!c.size || c.size===(size||''));
+        (!c.size || c.size===(size||'')) &&
+        (minQty<=0 || Number(qty||0)>=minQty);
     });
     if(matches.length===0) return 0;
     matches.sort(function(a,b){
-      var sa=(a.base?1:0)+(a.size?1:0), sb=(b.base?1:0)+(b.size?1:0);
+      var sa=(a.base?1:0)+(a.size?1:0)+(Number(a.minQty)>0?1:0);
+      var sb=(b.base?1:0)+(b.size?1:0)+(Number(b.minQty)>0?1:0);
       return sb-sa;
     });
     return matches[0].amount;
@@ -1041,7 +1056,7 @@
       items.forEach(function(it, idx){
         var total = (it.price+it.tint)*it.qty;
         var unitPrice = it.price+it.tint;
-        var cbAmt = findCashback(it.name, it.base, it.size);
+        var cbAmt = findCashback(it.name, it.base, it.size, it.qty);
         var subLine = (it.color ? ('สี '+esc(it.color)+' · ') : '') + it.qty+' ถัง × '+fmt(unitPrice)+'/ถัง';
         var cbLine = cbAmt>0 ? ('<div class="s" style="color:var(--amber);font-weight:600;">Cash Back ฿'+fmt(cbAmt)+'/ถัง (รวม '+fmt(cbAmt*it.qty)+')</div>') : '';
         var div = document.createElement('div');
@@ -1114,7 +1129,7 @@
     items.forEach(function(it){
       sumProduct += it.price*it.qty;
       sumTint += it.tint*it.qty;
-      totalCashback += findCashback(it.name, it.base, it.size)*it.qty;
+      totalCashback += findCashback(it.name, it.base, it.size, it.qty)*it.qty;
     });
     var stepHit = findStepCashback(sumProduct+sumTint);
     if(stepHit) totalCashback += Number(stepHit.amount);
@@ -1197,7 +1212,7 @@
       var unitPrice = it.price+it.tint;
       sumProduct += it.price*it.qty;
       sumTint += it.tint*it.qty;
-      var cbAmt = findCashback(it.name, it.base, it.size);
+      var cbAmt = findCashback(it.name, it.base, it.size, it.qty);
       totalCashback += cbAmt*it.qty;
       var tagParts = [];
       if(it.color) tagParts.push('สี '+it.color);
@@ -1297,7 +1312,7 @@
       var unitPrice = it.price+it.tint;
       sumProduct += it.price*it.qty;
       sumTint += it.tint*it.qty;
-      var cbAmt = findCashback(it.name, it.base, it.size);
+      var cbAmt = findCashback(it.name, it.base, it.size, it.qty);
       totalCashback += cbAmt*it.qty;
       var cbLine = cbAmt>0 ? ('<div class="sub" style="color:#B5721C;font-weight:700;">Cash Back ฿'+fmt(cbAmt)+'/ถัง (รวม '+fmt(cbAmt*it.qty)+')</div>') : '';
       var numBadge = '<div class="itemnum">'+(idx+1)+'</div>';
@@ -1551,6 +1566,7 @@
     var base = cbBaseField.style.display==='none' ? '' : cbBase.value;
     var size = cbSize.value;
     var amount = Number(document.getElementById('cbAmount').value);
+    var minQty = Number(document.getElementById('cbMinQty').value) || 0;
     if(!name || !amount){
       alert('กรุณาเลือกสินค้าและกรอกจำนวน Cash Back ให้ครบ');
       return;
@@ -1560,12 +1576,14 @@
     });
     if(existing){
       existing.amount = amount;
+      existing.minQty = minQty;
     } else {
-      cashbackConfig.push({id:uid(), name:name, base:base||'', size:size||'', amount:amount});
+      cashbackConfig.push({id:uid(), name:name, base:base||'', size:size||'', amount:amount, minQty:minQty});
     }
     await saveCashback();
     cbProduct.value='';
     document.getElementById('cbAmount').value='';
+    document.getElementById('cbMinQty').value='';
     refreshCbOptions();
     renderCashbackList();
     renderItems();
@@ -1582,6 +1600,7 @@
       var condParts=[];
       if(c.base) condParts.push('เบส '+c.base);
       if(c.size) condParts.push(c.size);
+      if(Number(c.minQty)>0) condParts.push('ซื้อครบ '+Number(c.minQty)+' ถังขึ้นไป');
       var cond = condParts.length ? condParts.join(' · ') : 'ทุกเบส/ทุกขนาด';
       var div = document.createElement('div');
       div.className='prodmini';
