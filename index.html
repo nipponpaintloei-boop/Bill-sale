@@ -369,6 +369,32 @@
   .cv-summary .l{display:flex;justify-content:space-between;font-size:13px;opacity:0.85;margin-bottom:4px;font-variant-numeric:tabular-nums;}
   .cv-summary .t{display:flex;justify-content:space-between;font-size:21px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;}
 
+  /* Quotation-style export image */
+  .quote-doc{
+    font-family:inherit;color:#1F2421;background:#fff;
+    width:700px;padding:36px;box-sizing:border-box;
+  }
+  .quote-doc .qhead{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:3px solid var(--blue);padding-bottom:14px;margin-bottom:18px;
+  }
+  .quote-doc .qshop{font-size:22px;font-weight:800;color:var(--blue);}
+  .quote-doc .qsub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .quote-doc .qtitle{font-size:20px;font-weight:800;text-align:right;}
+  .quote-doc .qmeta{font-size:12.5px;color:var(--ink-soft);text-align:right;margin-top:4px;}
+  .quote-doc table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  .quote-doc th{background:var(--blue);color:#fff;text-align:left;padding:8px 10px;font-size:12px;}
+  .quote-doc td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .quote-doc td.num,.quote-doc th.num{text-align:center;width:34px;}
+  .quote-doc td.amt,.quote-doc th.amt{text-align:right;white-space:nowrap;}
+  .quote-doc .qitemname{font-weight:700;}
+  .quote-doc .qitemsub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .quote-doc .qsummary{margin-top:14px;display:flex;justify-content:flex-end;}
+  .quote-doc .qsummary table{width:280px;}
+  .quote-doc .qsummary td{border:none;padding:4px 0;font-size:13px;}
+  .quote-doc .qsummary tr.qtotal td{font-size:17px;font-weight:800;color:var(--blue);border-top:2px solid var(--line);padding-top:8px;}
+  .quote-doc .qfoot{margin-top:26px;font-size:11.5px;color:var(--ink-soft);text-align:center;border-top:1px dashed var(--line);padding-top:12px;}
+
   @media print{
     body *{visibility:hidden;}
     #printarea, #printarea *{visibility:visible;}
@@ -490,6 +516,7 @@
 
 <div class="overlay hidden" id="overlay">
   <div class="closebar">
+    <button id="btnShareImage" type="button" class="modebtn">แชร์เป็นรูปภาพ</button>
     <button id="btnMixMode" type="button" class="modebtn">โหมดผสมสี</button>
     <button id="btnCloseOverlay" type="button">ปิด</button>
   </div>
@@ -566,6 +593,9 @@
   </div>
 </div>
 
+<div id="quoteExport" style="position:absolute;left:-9999px;top:0;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 (function(){
   var products = [];
@@ -688,37 +718,42 @@
   var usageChips = document.getElementById('usageChips');
   var inUsageOther = document.getElementById('inUsageOther');
   var USAGE_PRESETS = ['ภายนอก','ภายใน','ฝ้า','ตัดกันเปื้อน'];
-  var usageMode = '';
+  var usageSelected = []; // selected preset values, can be more than one
+  var usageOtherOn = false; // whether the free-text "อื่นๆ" field is active
 
   function renderUsageChips(){
     usageChips.querySelectorAll('.chip').forEach(function(c){
-      c.classList.toggle('active', c.getAttribute('data-usage')===usageMode);
+      var v = c.getAttribute('data-usage');
+      if(v==='__other__'){
+        c.classList.toggle('active', usageOtherOn);
+      } else {
+        c.classList.toggle('active', usageSelected.indexOf(v)>-1);
+      }
     });
-    if(usageMode==='__other__'){
-      inUsageOther.style.display='';
-    } else {
-      inUsageOther.style.display='none';
-    }
+    inUsageOther.style.display = usageOtherOn ? '' : 'none';
   }
   function currentUsageValue(){
-    if(usageMode==='__other__') return inUsageOther.value.trim();
-    return usageMode;
+    var parts = USAGE_PRESETS.filter(function(p){ return usageSelected.indexOf(p)>-1; });
+    if(usageOtherOn){
+      var custom = inUsageOther.value.trim();
+      if(custom) parts.push(custom);
+    }
+    return parts.join('/');
   }
   usageChips.addEventListener('click', function(e){
     var btn = e.target.closest('.chip');
     if(!btn) return;
     var v = btn.getAttribute('data-usage');
-    if(usageMode===v){
-      usageMode = '';
-      inUsageOther.value='';
+    if(v==='__other__'){
+      usageOtherOn = !usageOtherOn;
+      if(!usageOtherOn) inUsageOther.value='';
     } else {
-      usageMode = v;
+      var idx = usageSelected.indexOf(v);
+      if(idx>-1) usageSelected.splice(idx,1);
+      else usageSelected.push(v);
     }
     renderUsageChips();
-    if(usageMode==='__other__') inUsageOther.focus();
-  });
-  inUsageOther.addEventListener('input', function(){
-    usageMode = '__other__';
+    if(usageOtherOn && v==='__other__') inUsageOther.focus();
   });
 
   function uniqueNames(){
@@ -795,7 +830,8 @@
       tintQtyRow.classList.add('single');
       inColor.value='';
       inTint.value='';
-      usageMode='';
+      usageSelected=[];
+      usageOtherOn=false;
       inUsageOther.value='';
       renderUsageChips();
     }
@@ -966,7 +1002,8 @@
     autoPrice.textContent = '฿0';
     document.getElementById('priceWarning').classList.add('hidden');
     inColor.value='';
-    usageMode='';
+    usageSelected=[];
+    usageOtherOn=false;
     inUsageOther.value='';
     renderUsageChips();
     inTint.value='';
@@ -1023,15 +1060,20 @@
     selBase.value = it.base;
     updateAutoPrice();
     inColor.value = it.color;
-    if(it.usage && USAGE_PRESETS.indexOf(it.usage)>-1){
-      usageMode = it.usage;
-      inUsageOther.value = '';
-    } else if(it.usage){
-      usageMode = '__other__';
-      inUsageOther.value = it.usage;
-    } else {
-      usageMode = '';
-      inUsageOther.value = '';
+    usageSelected = [];
+    usageOtherOn = false;
+    inUsageOther.value = '';
+    if(it.usage){
+      var uParts = it.usage.split('/').map(function(s){return s.trim();}).filter(Boolean);
+      var uCustom = [];
+      uParts.forEach(function(p){
+        if(USAGE_PRESETS.indexOf(p)>-1) usageSelected.push(p);
+        else uCustom.push(p);
+      });
+      if(uCustom.length>0){
+        usageOtherOn = true;
+        inUsageOther.value = uCustom.join('/');
+      }
     }
     renderUsageChips();
     inTint.value = it.tint;
@@ -1123,6 +1165,105 @@
     btnMixMode.textContent = cvMode==='mix' ? 'โหมดลูกค้า' : 'โหมดผสมสี';
     btnMixMode.classList.toggle('active', cvMode==='mix');
     renderCustomerView();
+  });
+
+  // ---------- share as image (quotation-style) ----------
+  var quoteExport = document.getElementById('quoteExport');
+  function buildQuoteHtml(){
+    var now = new Date();
+    var dateStr = now.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
+    var rows = '';
+    var sumProduct=0, sumTint=0, totalCashback=0;
+    items.forEach(function(it, idx){
+      var total = (it.price+it.tint)*it.qty;
+      var unitPrice = it.price+it.tint;
+      sumProduct += it.price*it.qty;
+      sumTint += it.tint*it.qty;
+      var cbAmt = findCashback(it.name, it.base, it.size);
+      totalCashback += cbAmt*it.qty;
+      var tagParts = [];
+      if(it.color) tagParts.push('สี '+it.color);
+      if(it.usage) tagParts.push(it.usage);
+      var subTag = tagParts.length ? esc(tagParts.join(' · ')) : '';
+      rows += '<tr>'+
+        '<td class="num">'+(idx+1)+'</td>'+
+        '<td><div class="qitemname">'+esc(it.name)+' '+esc(it.size)+(it.base?(' '+esc(it.base)):'')+'</div>'+
+        (subTag?('<div class="qitemsub">'+subTag+'</div>'):'')+'</td>'+
+        '<td class="num">'+it.qty+'</td>'+
+        '<td class="amt">'+fmt(unitPrice)+'</td>'+
+        '<td class="amt">'+fmt(total)+'</td>'+
+        '</tr>';
+    });
+    var stepHit = findStepCashback(sumProduct+sumTint);
+    if(stepHit) totalCashback += Number(stepHit.amount);
+    var discount = Number(billDiscount)||0;
+    var grand = Math.max(0, sumProduct+sumTint-discount);
+
+    var summaryRows = '<tr><td>รวมค่าสินค้า</td><td class="amt">'+fmt(sumProduct)+'</td></tr>';
+    if(sumTint>0) summaryRows += '<tr><td>รวมค่าแม่สี</td><td class="amt">'+fmt(sumTint)+'</td></tr>';
+    if(discount>0) summaryRows += '<tr><td>ส่วนลด (คูปอง)</td><td class="amt">-'+fmt(discount)+'</td></tr>';
+    summaryRows += '<tr class="qtotal"><td>ยอดรวมสุทธิ</td><td class="amt">'+fmt(grand)+'</td></tr>';
+    if(totalCashback>0) summaryRows += '<tr><td style="color:#B5721C;font-weight:700;">Cash Back รวม (รับหลังชำระ)</td><td class="amt" style="color:#B5721C;font-weight:700;">'+fmt(totalCashback)+'</td></tr>';
+
+    return ''+
+      '<div class="quote-doc">'+
+        '<div class="qhead">'+
+          '<div><div class="qshop">Nippon Sales Bill</div><div class="qsub">เครื่องมือทำบิลขายสีหน้าร้าน</div></div>'+
+          '<div><div class="qtitle">ใบเสนอราคา</div><div class="qmeta">วันที่ '+dateStr+'</div></div>'+
+        '</div>'+
+        '<table>'+
+          '<thead><tr><th class="num">#</th><th>รายการ</th><th class="num">จำนวน</th><th class="amt">ราคา/ถัง</th><th class="amt">รวม</th></tr></thead>'+
+          '<tbody>'+rows+'</tbody>'+
+        '</table>'+
+        '<div class="qsummary"><table>'+summaryRows+'</table></div>'+
+        '<div class="qfoot">ขอบคุณที่ใช้บริการ · ราคานี้เป็นราคาประเมิน อาจเปลี่ยนแปลงได้ตามหน้าร้าน</div>'+
+      '</div>';
+  }
+
+  document.getElementById('btnShareImage').addEventListener('click', async function(){
+    if(items.length===0){
+      alert('ยังไม่มีรายการในบิล');
+      return;
+    }
+    var btn = this;
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'กำลังสร้างรูป...';
+    try{
+      if(typeof html2canvas === 'undefined'){
+        alert('ไม่สามารถโหลดตัวสร้างรูปภาพได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่');
+        return;
+      }
+      quoteExport.innerHTML = buildQuoteHtml();
+      var canvas = await html2canvas(quoteExport.firstElementChild, {backgroundColor:'#ffffff', scale:2});
+      quoteExport.innerHTML='';
+      canvas.toBlob(async function(blob){
+        if(!blob){
+          alert('สร้างรูปภาพไม่สำเร็จ');
+          return;
+        }
+        var file = new File([blob], 'ใบเสนอราคา.png', {type:'image/png'});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          try{
+            await navigator.share({files:[file], title:'ใบเสนอราคา'});
+          }catch(e){ /* user cancelled share */ }
+        } else {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = 'ใบเสนอราคา.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+        }
+      }, 'image/png');
+    }catch(e){
+      alert('เกิดข้อผิดพลาดขณะสร้างรูปภาพ กรุณาลองใหม่อีกครั้ง');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 
   function renderCustomerView(){
